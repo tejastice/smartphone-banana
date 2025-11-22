@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Smartphone Banana - AI画像生成アプリ">
+    <meta name="theme-color" content="#FFD700">
+    <title>Smartphone Banana</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍌 Smartphone Banana</h1>
+            <p class="subtitle">AI画像生成アプリ</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <label for="prompt">プロンプトを入力してください:</label>
+                <textarea
+                    id="prompt"
+                    rows="4"
+                    placeholder="例: An action shot of a black lab swimming in an inground suburban swimming pool..."
+                ></textarea>
+
+                <div class="settings">
+                    <div class="setting-item">
+                        <label for="num_images">画像数:</label>
+                        <select id="num_images">
+                            <option value="1" selected>1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="aspect_ratio">アスペクト比:</label>
+                        <select id="aspect_ratio">
+                            <option value="1:1" selected>1:1 (正方形)</option>
+                            <option value="16:9">16:9 (横長)</option>
+                            <option value="9:16">9:16 (縦長)</option>
+                            <option value="4:3">4:3</option>
+                            <option value="3:4">3:4</option>
+                            <option value="21:9">21:9</option>
+                            <option value="3:2">3:2</option>
+                            <option value="2:3">2:3</option>
+                            <option value="5:4">5:4</option>
+                            <option value="4:5">4:5</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="resolution">解像度:</label>
+                        <select id="resolution">
+                            <option value="1K" selected>1K</option>
+                            <option value="2K">2K</option>
+                            <option value="4K">4K</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="output_format">フォーマット:</label>
+                        <select id="output_format">
+                            <option value="png" selected>PNG</option>
+                            <option value="jpeg">JPEG</option>
+                            <option value="webp">WebP</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="api-key-section">
+                    <label for="api_key">FAL API Key:</label>
+                    <input
+                        type="password"
+                        id="api_key"
+                        placeholder="fal-xxxxx..."
+                        autocomplete="off"
+                    >
+                    <small>APIキーはブラウザのローカルストレージに保存されます（暗号化されません）。他人と共有する端末では使用しないでください。</small>
+                </div>
+
+                <button id="generateBtn" class="generate-btn">
+                    <span class="btn-text">画像を生成</span>
+                    <span class="btn-loader" style="display: none;">生成中...</span>
+                </button>
+            </div>
+
+            <div id="status" class="status"></div>
+
+            <div id="results" class="results"></div>
+        </main>
+
+        <footer>
+            <p>Powered by fal-ai/nano-banana-pro</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
