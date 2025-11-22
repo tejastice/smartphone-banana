@@ -110,11 +110,11 @@ async function callFalAPI(apiKey, params) {
         const submitData = await submitResponse.json();
         const requestId = submitData.request_id;
         const statusUrl = submitData.status_url || `${FAL_API_URL}/requests/${requestId}/status`;
+        const resultUrl = `${FAL_API_URL}/requests/${requestId}`;
 
         showStatus('リクエストを送信しました。画像を生成中...', 'info');
 
         // Poll for results
-        let result = null;
         let attempts = 0;
         const maxAttempts = 60; // 5 minutes max (5s interval)
 
@@ -134,8 +134,19 @@ async function callFalAPI(apiKey, params) {
             const statusData = await statusResponse.json();
 
             if (statusData.status === 'COMPLETED') {
-                result = statusData;
-                break;
+                // Fetch the actual result
+                const resultResponse = await fetch(resultUrl, {
+                    headers: {
+                        'Authorization': `Key ${apiKey}`,
+                    }
+                });
+
+                if (!resultResponse.ok) {
+                    throw new Error(`Result fetch failed: ${resultResponse.status}`);
+                }
+
+                const result = await resultResponse.json();
+                return result;
             } else if (statusData.status === 'FAILED') {
                 throw new Error(statusData.error || '画像生成に失敗しました');
             }
@@ -149,11 +160,7 @@ async function callFalAPI(apiKey, params) {
             attempts++;
         }
 
-        if (!result) {
-            throw new Error('タイムアウト: 画像生成に時間がかかりすぎています');
-        }
-
-        return result;
+        throw new Error('タイムアウト: 画像生成に時間がかかりすぎています');
     } catch (error) {
         console.error('API Error:', error);
         throw error;
