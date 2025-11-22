@@ -231,7 +231,12 @@ async function generateImages() {
     try {
         showStatus('画像生成リクエストを送信中...', 'info');
         const result = await callFalAPI(apiKey, params);
-        displayResults(result);
+        console.log('API Result:', result);
+
+        // FAL APIのレスポンス構造に対応
+        // resultに直接imagesがある場合と、result.dataにある場合の両方に対応
+        const imageData = result.data || result;
+        displayResults(imageData);
     } catch (error) {
         showStatus(`エラー: ${error.message}`, 'error');
         console.error('Generation error:', error);
