@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Generate PWA Icons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        canvas {
+            border: 2px solid #FFD700;
+            margin: 10px;
+            background: white;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .info {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍌 Smartphone Banana - アイコン生成ツール</h1>
+
+        <div class="info">
+            <p>このページを開くと、自動的に192x192と512x512のPNGアイコンが生成されます。</p>
+            <p>ダウンロードボタンをクリックして、アイコンを保存してください。</p>
+        </div>
+
+        <div>
+            <h3>192x192 アイコン</h3>
+            <canvas id="canvas192" width="192" height="192"></canvas>
+            <br>
+            <button id="download192">icon-192.png をダウンロード</button>
+        </div>
+
+        <div>
+            <h3>512x512 アイコン</h3>
+            <canvas id="canvas512" width="512" height="512"></canvas>
+            <br>
+            <button id="download512">icon-512.png をダウンロード</button>
+        </div>
+
+        <div class="info">
+            <h3>次のステップ:</h3>
+            <ol>
+                <li>上記のボタンをクリックして両方のアイコンをダウンロード</li>
+                <li>ダウンロードしたファイルを <code>webapp/icons/</code> フォルダに配置</li>
+                <li>アプリをリロードすると、PWAとしてインストール可能になります</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function createIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#FFA500');
+            gradient.addColorStop(1, '#FFD700');
+            ctx.fillStyle = gradient;
+
+            // Rounded rectangle
+            const radius = size / 5;
+            ctx.beginPath();
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(size - radius, 0);
+            ctx.quadraticCurveTo(size, 0, size, radius);
+            ctx.lineTo(size, size - radius);
+            ctx.quadraticCurveTo(size, size, size - radius, size);
+            ctx.lineTo(radius, size);
+            ctx.quadraticCurveTo(0, size, 0, size - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw banana emoji
+            ctx.font = `${size * 0.6}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🍌', size / 2, size / 2 + size * 0.05);
+
+            return canvas;
+        }
+
+        // Create both icons
+        createIcon('canvas192', 192);
+        createIcon('canvas512', 512);
+
+        // Download handlers
+        document.getElementById('download192').addEventListener('click', () => {
+            const canvas = document.getElementById('canvas192');
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'icon-192.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
+
+        document.getElementById('download512').addEventListener('click', () => {
+            const canvas = document.getElementById('canvas512');
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'icon-512.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
+    </script>
+</body>
+</html>
