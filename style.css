@@ -166,11 +166,67 @@ select:focus {
     padding-top: 15px;
 }
 
+.api-key-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.api-btn {
+    flex: 1;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.save-btn {
+    background: var(--success-color);
+    color: white;
+}
+
+.save-btn:hover {
+    background: #45a049;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.delete-btn {
+    background: var(--error-color);
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #da190b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.api-btn:active {
+    transform: translateY(0);
+}
+
 .api-key-section small {
     display: block;
-    margin-top: 5px;
+    margin-top: 10px;
     color: #999;
     font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.api-key-section small a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.api-key-section small a:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
 }
 
 .generate-btn {

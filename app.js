@@ -21,6 +21,8 @@ const btnText = document.querySelector('.btn-text');
 const btnLoader = document.querySelector('.btn-loader');
 const apiKeyToggle = document.getElementById('apiKeyToggle');
 const apiKeyContent = document.getElementById('apiKeyContent');
+const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+const deleteApiKeyBtn = document.getElementById('deleteApiKeyBtn');
 
 // Accordion toggle
 apiKeyToggle.addEventListener('click', () => {
@@ -36,12 +38,25 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Save API key to localStorage when changed
-apiKeyInput.addEventListener('change', () => {
+// Save API key button
+saveApiKeyBtn.addEventListener('click', () => {
     const apiKey = apiKeyInput.value.trim();
-    if (apiKey) {
-        localStorage.setItem('fal_api_key', apiKey);
-        showStatus('APIキーが保存されました', 'success');
+    if (!apiKey) {
+        showStatus('APIキーを入力してください', 'error');
+        return;
+    }
+    localStorage.setItem('fal_api_key', apiKey);
+    showStatus('APIキーが保存されました', 'success');
+    setTimeout(() => clearStatus(), 3000);
+});
+
+// Delete API key button
+deleteApiKeyBtn.addEventListener('click', () => {
+    if (confirm('保存されているAPIキーを削除しますか？')) {
+        localStorage.removeItem('fal_api_key');
+        apiKeyInput.value = '';
+        showStatus('APIキーが削除されました', 'success');
+        setTimeout(() => clearStatus(), 3000);
     }
 });
 
@@ -194,11 +209,6 @@ async function generateImages() {
 
     if (!apiKey) {
         showStatus('APIキーを入力してください', 'error');
-        return;
-    }
-
-    if (!apiKey.startsWith('fal-')) {
-        showStatus('無効なAPIキー形式です。APIキーは "fal-" で始まる必要があります', 'error');
         return;
     }
 

@@ -33,10 +33,17 @@
                             <input
                                 type="password"
                                 id="api_key"
-                                placeholder="fal-xxxxx..."
+                                placeholder="APIキーを入力..."
                                 autocomplete="off"
                             >
-                            <small>APIキーはブラウザのローカルストレージに保存されます（暗号化されません）。他人と共有する端末では使用しないでください。</small>
+                            <div class="api-key-buttons">
+                                <button type="button" id="saveApiKeyBtn" class="api-btn save-btn">保存</button>
+                                <button type="button" id="deleteApiKeyBtn" class="api-btn delete-btn">削除</button>
+                            </div>
+                            <small>
+                                APIキーは<a href="https://fal.ai/dashboard/keys" target="_blank" rel="noopener noreferrer">こちら</a>から取得できます。<br>
+                                APIキーはブラウザのローカルストレージに保存されます（暗号化されません）。他人と共有する端末では使用しないでください。
+                            </small>
                         </div>
                     </div>
                 </div>
