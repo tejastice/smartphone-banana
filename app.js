@@ -19,6 +19,14 @@ const statusDiv = document.getElementById('status');
 const resultsDiv = document.getElementById('results');
 const btnText = document.querySelector('.btn-text');
 const btnLoader = document.querySelector('.btn-loader');
+const apiKeyToggle = document.getElementById('apiKeyToggle');
+const apiKeyContent = document.getElementById('apiKeyContent');
+
+// Accordion toggle
+apiKeyToggle.addEventListener('click', () => {
+    apiKeyToggle.classList.toggle('active');
+    apiKeyContent.classList.toggle('active');
+});
 
 // Load saved API key from localStorage
 window.addEventListener('DOMContentLoaded', () => {

@@ -22,6 +22,25 @@
 
         <main>
             <div class="input-section">
+                <div class="api-key-accordion">
+                    <button type="button" class="accordion-toggle" id="apiKeyToggle">
+                        <span>⚙️ API設定</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content" id="apiKeyContent">
+                        <div class="api-key-section">
+                            <label for="api_key">FAL API Key:</label>
+                            <input
+                                type="password"
+                                id="api_key"
+                                placeholder="fal-xxxxx..."
+                                autocomplete="off"
+                            >
+                            <small>APIキーはブラウザのローカルストレージに保存されます（暗号化されません）。他人と共有する端末では使用しないでください。</small>
+                        </div>
+                    </div>
+                </div>
+
                 <label for="prompt">プロンプトを入力してください:</label>
                 <textarea
                     id="prompt"
@@ -73,17 +92,6 @@
                             <option value="webp">WebP</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="api-key-section">
-                    <label for="api_key">FAL API Key:</label>
-                    <input
-                        type="password"
-                        id="api_key"
-                        placeholder="fal-xxxxx..."
-                        autocomplete="off"
-                    >
-                    <small>APIキーはブラウザのローカルストレージに保存されます（暗号化されません）。他人と共有する端末では使用しないでください。</small>
                 </div>
 
                 <button id="generateBtn" class="generate-btn">
