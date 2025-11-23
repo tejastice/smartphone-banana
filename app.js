@@ -982,10 +982,35 @@ function displayResults(data) {
         actions.className = 'result-actions';
 
         const downloadLink = document.createElement('a');
-        downloadLink.href = image.url;
-        downloadLink.download = image.file_name || `banana-${Date.now()}-${index}.png`;
+        downloadLink.href = '#';
         downloadLink.textContent = 'ダウンロード';
-        downloadLink.target = '_blank';
+        downloadLink.className = 'download-link';
+        downloadLink.onclick = async (e) => {
+            e.preventDefault();
+            try {
+                // Fetch the image as a blob
+                const response = await fetch(image.url);
+                const blob = await response.blob();
+
+                // Create a temporary URL for the blob
+                const blobUrl = URL.createObjectURL(blob);
+
+                // Create a temporary link and trigger download
+                const tempLink = document.createElement('a');
+                tempLink.href = blobUrl;
+                tempLink.download = image.file_name || `banana-${Date.now()}-${index}.png`;
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+
+                // Clean up the blob URL
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+            } catch (error) {
+                console.error('Download failed:', error);
+                // Fallback: open in new tab
+                window.open(image.url, '_blank');
+            }
+        };
 
         actions.appendChild(downloadLink);
         resultItem.appendChild(img);
