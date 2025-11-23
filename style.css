@@ -1251,3 +1251,20 @@ footer a:hover {
         flex: 1;
     }
 }
+
+/* 350px以下では2列グリッドに切り替え（5列では物理的に成立しないため） */
+@media (max-width: 350px) {
+    .image-preview-container {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* ドロップゾーンは2列分横幅いっぱいに広げる */
+    .upload-drop-zone-grid {
+        grid-column: span 2 !important;
+    }
+
+    /* カメラボタンは1列分 */
+    .camera-zone-grid {
+        grid-column: span 1 !important;
+    }
+}
