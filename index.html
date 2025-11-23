@@ -16,8 +16,12 @@
 <body>
     <div class="container">
         <header>
-            <h1>🍌 Smartphone Banana <span class="version">v0.1.2</span></h1>
-            <p class="subtitle">AI画像生成アプリ</p>
+            <div class="header-content">
+                <img src="icons/icon-192.png" alt="Smartphone Banana" class="header-icon">
+                <div class="header-text">
+                    <h1>Smartphone Banana <span class="version">v0.1.7</span></h1>
+                </div>
+            </div>
         </header>
 
         <main>
@@ -54,6 +58,18 @@
                     rows="4"
                     placeholder="例: An action shot of a black lab swimming in an inground suburban swimming pool..."
                 ></textarea>
+
+                <div class="image-upload-section">
+                    <label>参照画像 (最大4枚、オプション):</label>
+                    <div class="image-upload-area" id="imageUploadArea">
+                        <input type="file" id="imageFileInput" accept="image/*" multiple style="display: none;">
+                        <div class="upload-placeholder" id="uploadPlaceholder">
+                            <p>📷 クリックまたはドラッグ&ドロップで画像を追加</p>
+                            <small>最大4枚まで選択可能</small>
+                        </div>
+                        <div class="image-preview-container" id="imagePreviewContainer"></div>
+                    </div>
+                </div>
 
                 <div class="settings">
                     <div class="setting-item">
