@@ -225,6 +225,9 @@ const imageLibraryContent = document.getElementById('imageLibraryContent');
 const libraryAddBtn = document.getElementById('libraryAddBtn');
 const libraryFileInput = document.getElementById('libraryFileInput');
 const imageLibraryGrid = document.getElementById('imageLibraryGrid');
+const officialLibraryToggle = document.getElementById('officialLibraryToggle');
+const officialLibraryContent = document.getElementById('officialLibraryContent');
+const officialLibraryGrid = document.getElementById('officialLibraryGrid');
 
 // Image upload state
 let uploadedImages = [];
@@ -240,6 +243,58 @@ let customPrompts = [];
 const MAX_LIBRARY_IMAGES = 20;
 const MAX_IMAGE_SIZE_KB = 500;
 let libraryImages = [];
+
+// Official library state
+const OFFICIAL_TEMPLATE_IMAGES = [
+    'char-anju.jpg',
+    'char-keisuke-color.jpg',
+    'char-keisuke.jpg',
+    'char-maou.jpg',
+    'char-riko.jpg',
+    'char-two-p-chan.jpg',
+    'character_sheet_1.jpg',
+    'character_sheet_2.jpg',
+    'koma1-1.jpg',
+    'koma2-1.jpg',
+    'koma2-2.jpg',
+    'koma3-1.jpg',
+    'koma3-2.jpg',
+    'koma3-3.jpg',
+    'koma4-1.jpg',
+    'koma4-2.jpg',
+    'koma4-3.jpg',
+    'koma4-4.jpg',
+    'koma4-5.jpg',
+    'koma4-6.jpg',
+    'koma4-7.jpg',
+    'koma5-1.jpg',
+    'koma5-2.jpg',
+    'koma5-3.jpg',
+    'koma5-4.jpg',
+    'koma5-5.jpg',
+    'koma6-1.jpg',
+    'koma7-1.jpg',
+    'white-koma1-1.jpg',
+    'white-koma2-1.jpg',
+    'white-koma2-2.jpg',
+    'white-koma3-1.jpg',
+    'white-koma3-2.jpg',
+    'white-koma3-3.jpg',
+    'white-koma4-1.jpg',
+    'white-koma4-2.jpg',
+    'white-koma4-3.jpg',
+    'white-koma4-4.jpg',
+    'white-koma4-5.jpg',
+    'white-koma4-6.jpg',
+    'white-koma4-7.jpg',
+    'white-koma5-1.jpg',
+    'white-koma5-2.jpg',
+    'white-koma5-3.jpg',
+    'white-koma5-4.jpg',
+    'white-koma5-5.jpg',
+    'white-koma6-1.jpg',
+    'white-koma7-1.jpg'
+];
 
 // Accordion toggle
 apiKeyToggle.addEventListener('click', () => {
@@ -257,6 +312,12 @@ customPromptsToggle.addEventListener('click', () => {
 imageLibraryToggle.addEventListener('click', () => {
     imageLibraryToggle.classList.toggle('active');
     imageLibraryContent.classList.toggle('active');
+});
+
+// Official library accordion toggle
+officialLibraryToggle.addEventListener('click', () => {
+    officialLibraryToggle.classList.toggle('active');
+    officialLibraryContent.classList.toggle('active');
 });
 
 // Check API key and update warning display
@@ -328,8 +389,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
     renderCustomPrompts();
     renderLibraryImages();
+    renderOfficialLibrary();
     checkPromptInput();
     checkApiKey();
+
+    // 画像が0枚の状態でも、狙いのレイアウトにする
+    updateImagePreview();
 });
 
 // Render custom prompts list
@@ -602,6 +667,71 @@ function saveLibraryImages() {
     localStorage.setItem('library_images', JSON.stringify(libraryImages));
 }
 
+// Render official library images
+function renderOfficialLibrary() {
+    officialLibraryGrid.innerHTML = '';
+
+    OFFICIAL_TEMPLATE_IMAGES.forEach((filename) => {
+        const item = document.createElement('div');
+        item.className = 'official-library-item';
+
+        const img = document.createElement('img');
+        img.src = `template/${filename}`;
+        img.alt = filename;
+
+        const nameLabel = document.createElement('div');
+        nameLabel.className = 'official-library-item-name';
+        nameLabel.textContent = filename.replace('.jpg', '');
+
+        item.appendChild(img);
+        item.appendChild(nameLabel);
+
+        // Click to add to reference images
+        item.addEventListener('click', () => {
+            addOfficialImageToReference(filename);
+        });
+
+        officialLibraryGrid.appendChild(item);
+    });
+}
+
+// Add official library image to reference images
+async function addOfficialImageToReference(filename) {
+    if (uploadedImages.length >= 4) {
+        showStatus('参照画像は最大4枚までです', 'error');
+        return;
+    }
+
+    try {
+        // Fetch the image from the template folder
+        const response = await fetch(`template/${filename}`);
+        const blob = await response.blob();
+
+        // Create File object
+        const file = new File([blob], filename, { type: blob.type });
+
+        // Add to uploaded images
+        const dataUrl = await readFileAsDataURL(file);
+        uploadedImages.push({ file, dataUrl });
+
+        updateImagePreview();
+        showStatus(`公式ライブラリから「${filename.replace('.jpg', '')}」を追加しました`, 'success');
+    } catch (error) {
+        console.error('Failed to load official image:', error);
+        showStatus('画像の読み込みに失敗しました', 'error');
+    }
+}
+
+// Helper function to read file as data URL
+function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
 // Show confirmation dialog
 function showConfirmDialog(message, onConfirm) {
     // Create overlay
@@ -795,11 +925,8 @@ function handleFileSelect(files) {
 function updateImagePreview() {
     imagePreviewContainer.innerHTML = '';
 
-    if (uploadedImages.length >= 4) {
-        // Hide upload controls only when 4 images are uploaded
-        uploadControls.style.display = 'none';
-    } else {
-        // Hide original upload controls and show them in grid instead
+    // もうグリッド側だけを使うので、常に隠す
+    if (uploadControls) {
         uploadControls.style.display = 'none';
     }
 
@@ -827,9 +954,13 @@ function updateImagePreview() {
 
     // Add drop zone and camera button to grid when 0-3 images are uploaded
     if (uploadedImages.length < 4) {
+        // Calculate drop zone span (4 - number of images)
+        const dropZoneSpan = 4 - uploadedImages.length;
+
         // Drop zone
         const dropZoneGrid = document.createElement('div');
         dropZoneGrid.className = 'upload-drop-zone-grid';
+        dropZoneGrid.style.gridColumn = `span ${dropZoneSpan}`;
         dropZoneGrid.innerHTML = `
             <p>📁</p>
             <small>クリック or ドラッグ&ドロップ</small>
@@ -852,7 +983,7 @@ function updateImagePreview() {
 
         imagePreviewContainer.appendChild(dropZoneGrid);
 
-        // Camera button
+        // Camera button (always 1 column)
         const cameraGridItem = document.createElement('div');
         cameraGridItem.className = 'camera-zone-grid';
 

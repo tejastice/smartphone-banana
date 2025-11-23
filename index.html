@@ -84,7 +84,7 @@
         "PWAインストール対応"
       ],
       "screenshot": "https://tejastice.github.io/smartphone-banana/ogp.jpg",
-      "softwareVersion": "1.0.4",
+      "softwareVersion": "1.0.10",
       "datePublished": "2025-01-23",
       "dateModified": "2025-01-23"
     }
@@ -102,7 +102,7 @@
             <div class="header-content">
                 <img src="icons/icon-192.png" alt="Smartphone Banana" class="header-icon">
                 <div class="header-text">
-                    <h1>Smartphone Banana <span class="version">v1.0.4</span></h1>
+                    <h1>Smartphone Banana <span class="version">v1.0.10</span></h1>
                 </div>
                 <button id="installButton" class="install-button" style="display: none;" title="アプリをインストール">
                     📥
@@ -197,6 +197,19 @@
                             <input type="file" id="libraryFileInput" accept="image/*" multiple style="display: none;">
                             <button type="button" class="library-add-btn" id="libraryAddBtn">ライブラリに画像を追加（クリックまたはドラッグ&ドロップ）</button>
                             <div class="image-library-grid" id="imageLibraryGrid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="official-library-accordion">
+                    <button type="button" class="accordion-toggle" id="officialLibraryToggle">
+                        <span>🏛️ 公式ライブラリ</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content" id="officialLibraryContent">
+                        <div class="official-library-section">
+                            <p class="official-library-description">テンプレート画像から選択できます</p>
+                            <div class="official-library-grid" id="officialLibraryGrid"></div>
                         </div>
                     </div>
                 </div>
