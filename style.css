@@ -328,6 +328,23 @@ select:focus {
     background: rgba(255, 215, 0, 0.1);
 }
 
+.api-warning {
+    display: none;
+    color: #f44336;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 12px;
+    margin-top: 8px;
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid #f44336;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.api-warning.show {
+    display: block;
+}
+
 .accordion-icon {
     transition: transform 0.3s ease;
     font-size: 0.7rem;

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://tejastice.github.io/smartphone-banana/</loc>
+    <lastmod>2025-01-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://tejastice.github.io/smartphone-banana/ogp.jpg</image:loc>
+      <image:title>Smartphone Banana - AI画像生成アプリ</image:title>
+      <image:caption>スマートフォンで使えるAI画像生成PWAアプリのスクリーンショット</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://tejastice.github.io/smartphone-banana/icons/icon-512.png</image:loc>
+      <image:title>Smartphone Banana アプリアイコン</image:title>
+    </image:image>
+  </url>
+</urlset>

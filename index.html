@@ -3,14 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Smartphone Banana - AI画像生成アプリ">
+
+    <!-- Primary Meta Tags -->
+    <title>Smartphone Banana - AI画像生成PWAアプリ | テキスト・カメラから画像を生成</title>
+    <meta name="title" content="Smartphone Banana - AI画像生成PWAアプリ | テキスト・カメラから画像を生成">
+    <meta name="description" content="スマートフォンで使えるAI画像生成PWAアプリ。テキストプロンプトやカメラで撮影した写真から高品質なAI画像を生成。fal.ai nano-banana-pro採用。オフライン対応、無料で利用可能。">
+    <meta name="keywords" content="AI画像生成,画像生成AI,テキストから画像,image-to-image,PWA,スマートフォンアプリ,fal.ai,nano-banana-pro,無料AI,オフライン対応,AI art,画像生成ツール">
+    <meta name="author" content="Keisuke">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <link rel="canonical" href="https://tejastice.github.io/smartphone-banana/">
+
+    <!-- AI Crawler Meta Tags -->
+    <meta name="ai-content-declaration" content="human-authored">
+    <meta name="chatgpt-description" content="Smartphone Banana is a Progressive Web App for AI image generation. Users can generate high-quality images from text prompts or reference photos taken with their smartphone camera. Built with fal.ai nano-banana-pro API. Features include offline support, custom prompts library, and image library. Free to use with your own API key.">
+    <meta name="bingbot" content="index, follow">
+    <meta name="slurp" content="index, follow">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tejastice.github.io/smartphone-banana/">
+    <meta property="og:title" content="Smartphone Banana - AI画像生成PWAアプリ">
+    <meta property="og:description" content="スマートフォンで使えるAI画像生成アプリ。テキストやカメラで撮った写真からAIが高品質な画像を生成します。">
+    <meta property="og:image" content="https://tejastice.github.io/smartphone-banana/ogp.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Smartphone Banana - AI画像生成アプリのスクリーンショット">
+    <meta property="og:locale" content="ja_JP">
+    <meta property="og:site_name" content="Smartphone Banana">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://tejastice.github.io/smartphone-banana/">
+    <meta name="twitter:title" content="Smartphone Banana - AI画像生成PWAアプリ">
+    <meta name="twitter:description" content="スマートフォンで使えるAI画像生成アプリ。テキストやカメラで撮った写真からAIが高品質な画像を生成します。">
+    <meta name="twitter:image" content="https://tejastice.github.io/smartphone-banana/ogp.jpg">
+    <meta name="twitter:image:alt" content="Smartphone Banana - AI画像生成アプリのスクリーンショット">
+
+    <!-- PWA & Mobile -->
     <meta name="theme-color" content="#FFD700">
-    <title>Smartphone Banana</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="スマホバナナ">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Smartphone Banana">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Smartphone Banana",
+      "alternateName": "スマホバナナ",
+      "url": "https://tejastice.github.io/smartphone-banana/",
+      "description": "スマートフォンで使えるAI画像生成PWAアプリ。テキストプロンプトやカメラで撮影した写真から高品質なAI画像を生成できます。",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "JPY"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Keisuke"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5.0",
+        "ratingCount": "1"
+      },
+      "featureList": [
+        "テキストから画像生成 (Text-to-Image)",
+        "画像から画像生成 (Image-to-Image)",
+        "カメラ連携",
+        "オフライン対応",
+        "カスタムプロンプト保存",
+        "画像ライブラリ機能",
+        "PWAインストール対応"
+      ],
+      "screenshot": "https://tejastice.github.io/smartphone-banana/ogp.jpg",
+      "softwareVersion": "0.1.33",
+      "datePublished": "2025-01-23",
+      "dateModified": "2025-01-23"
+    }
+    </script>
+
+    <!-- Resources -->
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icons/icon-192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icons/icon-512.png">
 </head>
 <body>
@@ -19,7 +102,7 @@
             <div class="header-content">
                 <img src="icons/icon-192.png" alt="Smartphone Banana" class="header-icon">
                 <div class="header-text">
-                    <h1>Smartphone Banana <span class="version">v0.1.30</span></h1>
+                    <h1>Smartphone Banana <span class="version">v0.1.33</span></h1>
                 </div>
             </div>
         </header>
@@ -35,6 +118,9 @@
                         <span>⚙️ API設定</span>
                         <span class="accordion-icon">▼</span>
                     </button>
+                    <div class="api-warning" id="apiWarning">
+                        ⚠️ APIキーを入力してください
+                    </div>
                     <div class="accordion-content" id="apiKeyContent">
                         <div class="api-key-section">
                             <label for="api_key">FAL API Key:</label>

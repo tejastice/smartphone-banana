@@ -1,0 +1,31 @@
+# Smartphone Banana - robots.txt
+# Last updated: 2025-01-23
+
+# Allow all web crawlers
+User-agent: *
+Allow: /
+
+# Allow AI crawlers (ChatGPT, Claude, Bard, etc.)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Sitemap location
+Sitemap: https://tejastice.github.io/smartphone-banana/sitemap.xml
+
+# Crawl-delay (optional, helps prevent server overload)
+Crawl-delay: 1

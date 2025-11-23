@@ -1,7 +1,7 @@
 {
   "name": "Smartphone Banana",
-  "short_name": "Banana",
-  "description": "AI画像生成アプリ - fal-ai/nano-banana-proを使用",
+  "short_name": "スマホバナナ",
+  "description": "テキストやカメラで撮った写真からAIが画像を生成するアプリ",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a1a",

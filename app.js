@@ -82,6 +82,7 @@ const btnText = document.querySelector('.btn-text');
 const btnLoader = document.querySelector('.btn-loader');
 const apiKeyToggle = document.getElementById('apiKeyToggle');
 const apiKeyContent = document.getElementById('apiKeyContent');
+const apiWarning = document.getElementById('apiWarning');
 const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
 const deleteApiKeyBtn = document.getElementById('deleteApiKeyBtn');
 const imageFileInput = document.getElementById('imageFileInput');
@@ -132,6 +133,20 @@ imageLibraryToggle.addEventListener('click', () => {
     imageLibraryToggle.classList.toggle('active');
     imageLibraryContent.classList.toggle('active');
 });
+
+// Check API key and update warning display
+function checkApiKey() {
+    const savedApiKey = localStorage.getItem('fal_api_key');
+    const hasApiKey = savedApiKey && savedApiKey.trim().length > 0;
+
+    if (hasApiKey) {
+        apiWarning.classList.remove('show');
+    } else {
+        apiWarning.classList.add('show');
+    }
+
+    return hasApiKey;
+}
 
 // Load saved API key, custom prompts, and library images from localStorage
 window.addEventListener('DOMContentLoaded', () => {
@@ -189,6 +204,7 @@ window.addEventListener('DOMContentLoaded', () => {
     renderCustomPrompts();
     renderLibraryImages();
     checkPromptInput();
+    checkApiKey();
 });
 
 // Render custom prompts list
@@ -558,6 +574,7 @@ saveApiKeyBtn.addEventListener('click', () => {
     localStorage.setItem('fal_api_key', apiKey);
     showStatus('APIキーが保存されました', 'success');
     setTimeout(() => clearStatus(), 3000);
+    checkApiKey();
 });
 
 // Delete API key button
@@ -567,6 +584,7 @@ deleteApiKeyBtn.addEventListener('click', () => {
         apiKeyInput.value = '';
         showStatus('APIキーが削除されました', 'success');
         setTimeout(() => clearStatus(), 3000);
+        checkApiKey();
     }
 });
 
@@ -654,30 +672,38 @@ function updateImagePreview() {
 
     if (uploadedImages.length === 0) {
         uploadControls.style.display = 'flex';
-    } else {
+        uploadDropZone.style.display = 'flex';
+        cameraZone.style.display = 'flex';
+    } else if (uploadedImages.length >= 4) {
+        // Hide upload controls only when 4 images are uploaded
         uploadControls.style.display = 'none';
-
-        uploadedImages.forEach((image, index) => {
-            const previewItem = document.createElement('div');
-            previewItem.className = 'image-preview-item';
-
-            const img = document.createElement('img');
-            img.src = image.dataUrl;
-            img.alt = `Preview ${index + 1}`;
-
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'image-remove-btn';
-            removeBtn.textContent = '×';
-            removeBtn.onclick = (e) => {
-                e.stopPropagation();
-                removeImage(index);
-            };
-
-            previewItem.appendChild(img);
-            previewItem.appendChild(removeBtn);
-            imagePreviewContainer.appendChild(previewItem);
-        });
+    } else {
+        // Show only camera button when 1-3 images are uploaded
+        uploadDropZone.style.display = 'none';
+        cameraZone.style.display = 'flex';
+        uploadControls.style.display = 'flex';
     }
+
+    uploadedImages.forEach((image, index) => {
+        const previewItem = document.createElement('div');
+        previewItem.className = 'image-preview-item';
+
+        const img = document.createElement('img');
+        img.src = image.dataUrl;
+        img.alt = `Preview ${index + 1}`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'image-remove-btn';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = (e) => {
+            e.stopPropagation();
+            removeImage(index);
+        };
+
+        previewItem.appendChild(img);
+        previewItem.appendChild(removeBtn);
+        imagePreviewContainer.appendChild(previewItem);
+    });
 
     // Reset file input
     imageFileInput.value = '';
