@@ -19,7 +19,7 @@
             <div class="header-content">
                 <img src="icons/icon-192.png" alt="Smartphone Banana" class="header-icon">
                 <div class="header-text">
-                    <h1>Smartphone Banana <span class="version">v0.1.7</span></h1>
+                    <h1>Smartphone Banana <span class="version">v0.1.25</span></h1>
                 </div>
             </div>
         </header>
@@ -52,6 +52,8 @@
                     </div>
                 </div>
 
+                <hr class="section-divider">
+
                 <label for="prompt">プロンプトを入力してください:</label>
                 <textarea
                     id="prompt"
@@ -59,17 +61,54 @@
                     placeholder="例: An action shot of a black lab swimming in an inground suburban swimming pool..."
                 ></textarea>
 
+                <div class="custom-prompts-section">
+                    <div class="custom-prompts-accordion">
+                        <button type="button" class="accordion-toggle" id="customPromptsToggle">
+                            <span>📝 カスタムプロンプト設定</span>
+                            <span class="accordion-icon">▼</span>
+                        </button>
+                        <div class="accordion-content" id="customPromptsContent">
+                            <div class="custom-prompts-list" id="customPromptsList"></div>
+                        </div>
+                    </div>
+                    <div class="custom-prompts-buttons" id="customPromptsButtons"></div>
+                </div>
+
+                <hr class="section-divider">
+
                 <div class="image-upload-section">
                     <label>参照画像 (最大4枚、オプション):</label>
-                    <div class="image-upload-area" id="imageUploadArea">
-                        <input type="file" id="imageFileInput" accept="image/*" multiple style="display: none;">
-                        <div class="upload-placeholder" id="uploadPlaceholder">
+                    <input type="file" id="imageFileInput" accept="image/*" multiple style="display: none;">
+                    <input type="file" id="cameraFileInput" accept="image/*" capture="environment" style="display: none;">
+                    <div class="upload-controls" id="uploadControls">
+                        <div class="upload-drop-zone" id="uploadDropZone">
                             <p>📷 クリックまたはドラッグ&ドロップで画像を追加</p>
                             <small>最大4枚まで選択可能</small>
                         </div>
-                        <div class="image-preview-container" id="imagePreviewContainer"></div>
+                        <div class="camera-zone" id="cameraZone">
+                            <button type="button" class="camera-btn" id="cameraBtn" title="カメラで撮影">
+                                <img src="icons/camera.png" alt="カメラ" class="camera-icon">
+                            </button>
+                        </div>
+                    </div>
+                    <div class="image-preview-container" id="imagePreviewContainer"></div>
+                </div>
+
+                <div class="image-library-accordion">
+                    <button type="button" class="accordion-toggle" id="imageLibraryToggle">
+                        <span>🖼️ 画像ライブラリ</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content" id="imageLibraryContent">
+                        <div class="image-library-section">
+                            <input type="file" id="libraryFileInput" accept="image/*" multiple style="display: none;">
+                            <button type="button" class="library-add-btn" id="libraryAddBtn">ライブラリに画像を追加（クリックまたはドラッグ&ドロップ）</button>
+                            <div class="image-library-grid" id="imageLibraryGrid"></div>
+                        </div>
                     </div>
                 </div>
+
+                <hr class="section-divider">
 
                 <div class="settings">
                     <div class="setting-item">
@@ -117,10 +156,15 @@
                     </div>
                 </div>
 
-                <button id="generateBtn" class="generate-btn">
-                    <span class="btn-text">画像を生成</span>
-                    <span class="btn-loader" style="display: none;">生成中...</span>
-                </button>
+                <div class="action-buttons">
+                    <button id="generateBtn" class="generate-btn" disabled>
+                        <span class="btn-text">画像を生成</span>
+                        <span class="btn-loader" style="display: none;">生成中...</span>
+                    </button>
+                    <button id="cancelBtn" class="cancel-btn" style="display: none;">
+                        キャンセル
+                    </button>
+                </div>
             </div>
 
             <div id="status" class="status"></div>

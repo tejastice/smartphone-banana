@@ -21,7 +21,7 @@ Access at `http://localhost:8000`
 - Current format: `v0.1.x` where x increments with each change
 - Location: `<h1>Smartphone Banana <span class="version">v0.1.x</span></h1>`
 - Update the version number in the h1 tag for ANY modification
-- Current version: v0.1.7
+- Current version: v0.1.25
 
 ## Architecture
 

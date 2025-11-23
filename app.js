@@ -15,6 +15,7 @@ const resolutionSelect = document.getElementById('resolution');
 const outputFormatSelect = document.getElementById('output_format');
 const apiKeyInput = document.getElementById('api_key');
 const generateBtn = document.getElementById('generateBtn');
+const cancelBtn = document.getElementById('cancelBtn');
 const statusDiv = document.getElementById('status');
 const resultsDiv = document.getElementById('results');
 const btnText = document.querySelector('.btn-text');
@@ -23,13 +24,36 @@ const apiKeyToggle = document.getElementById('apiKeyToggle');
 const apiKeyContent = document.getElementById('apiKeyContent');
 const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
 const deleteApiKeyBtn = document.getElementById('deleteApiKeyBtn');
-const imageUploadArea = document.getElementById('imageUploadArea');
 const imageFileInput = document.getElementById('imageFileInput');
-const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+const cameraFileInput = document.getElementById('cameraFileInput');
+const cameraBtn = document.getElementById('cameraBtn');
+const uploadControls = document.getElementById('uploadControls');
+const uploadDropZone = document.getElementById('uploadDropZone');
 const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+const customPromptsToggle = document.getElementById('customPromptsToggle');
+const customPromptsContent = document.getElementById('customPromptsContent');
+const customPromptsList = document.getElementById('customPromptsList');
+const customPromptsButtons = document.getElementById('customPromptsButtons');
+const imageLibraryToggle = document.getElementById('imageLibraryToggle');
+const imageLibraryContent = document.getElementById('imageLibraryContent');
+const libraryAddBtn = document.getElementById('libraryAddBtn');
+const libraryFileInput = document.getElementById('libraryFileInput');
+const imageLibraryGrid = document.getElementById('imageLibraryGrid');
 
 // Image upload state
 let uploadedImages = [];
+
+// Cancellation state
+let isCancelled = false;
+
+// Custom prompts state
+const MAX_CUSTOM_PROMPTS = 10;
+let customPrompts = [];
+
+// Image library state
+const MAX_LIBRARY_IMAGES = 20;
+const MAX_IMAGE_SIZE_KB = 500;
+let libraryImages = [];
 
 // Accordion toggle
 apiKeyToggle.addEventListener('click', () => {
@@ -37,13 +61,432 @@ apiKeyToggle.addEventListener('click', () => {
     apiKeyContent.classList.toggle('active');
 });
 
-// Load saved API key from localStorage
+// Custom prompts accordion toggle
+customPromptsToggle.addEventListener('click', () => {
+    customPromptsToggle.classList.toggle('active');
+    customPromptsContent.classList.toggle('active');
+});
+
+// Image library accordion toggle
+imageLibraryToggle.addEventListener('click', () => {
+    imageLibraryToggle.classList.toggle('active');
+    imageLibraryContent.classList.toggle('active');
+});
+
+// Load saved API key, custom prompts, and library images from localStorage
 window.addEventListener('DOMContentLoaded', () => {
     const savedApiKey = localStorage.getItem('fal_api_key');
     if (savedApiKey) {
         apiKeyInput.value = savedApiKey;
     }
+
+    // Load generation settings
+    const savedNumImages = localStorage.getItem('num_images');
+    if (savedNumImages) {
+        numImagesSelect.value = savedNumImages;
+    }
+
+    const savedAspectRatio = localStorage.getItem('aspect_ratio');
+    if (savedAspectRatio) {
+        aspectRatioSelect.value = savedAspectRatio;
+    }
+
+    const savedResolution = localStorage.getItem('resolution');
+    if (savedResolution) {
+        resolutionSelect.value = savedResolution;
+    }
+
+    const savedOutputFormat = localStorage.getItem('output_format');
+    if (savedOutputFormat) {
+        outputFormatSelect.value = savedOutputFormat;
+    }
+
+    // Load custom prompts
+    const savedPrompts = localStorage.getItem('custom_prompts');
+    if (savedPrompts) {
+        try {
+            customPrompts = JSON.parse(savedPrompts);
+        } catch (e) {
+            customPrompts = [];
+        }
+    }
+
+    // Initialize custom prompts if empty
+    if (customPrompts.length === 0) {
+        customPrompts = Array(MAX_CUSTOM_PROMPTS).fill(null).map(() => ({ name: '', text: '' }));
+    }
+
+    // Load library images
+    const savedLibraryImages = localStorage.getItem('library_images');
+    if (savedLibraryImages) {
+        try {
+            libraryImages = JSON.parse(savedLibraryImages);
+        } catch (e) {
+            libraryImages = [];
+        }
+    }
+
+    renderCustomPrompts();
+    renderLibraryImages();
+    checkPromptInput();
 });
+
+// Render custom prompts list
+function renderCustomPrompts() {
+    customPromptsList.innerHTML = '';
+    customPromptsButtons.innerHTML = '';
+
+    customPrompts.forEach((prompt, index) => {
+        // Render edit area in accordion
+        const item = document.createElement('div');
+        item.className = 'custom-prompt-item';
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'custom-prompt-name-input';
+        nameInput.placeholder = `プロンプト名 ${index + 1}`;
+        nameInput.value = prompt.name;
+        nameInput.addEventListener('input', (e) => {
+            customPrompts[index].name = e.target.value;
+            saveCustomPrompts();
+            renderCustomPromptsButtons();
+        });
+
+        const textArea = document.createElement('textarea');
+        textArea.className = 'custom-prompt-text';
+        textArea.placeholder = 'プロンプトを入力...';
+        textArea.value = prompt.text;
+        textArea.rows = 2;
+        textArea.addEventListener('input', (e) => {
+            customPrompts[index].text = e.target.value;
+            saveCustomPrompts();
+            renderCustomPromptsButtons();
+        });
+
+        item.appendChild(nameInput);
+        item.appendChild(textArea);
+        customPromptsList.appendChild(item);
+    });
+
+    renderCustomPromptsButtons();
+}
+
+// Render custom prompts buttons outside accordion
+function renderCustomPromptsButtons() {
+    customPromptsButtons.innerHTML = '';
+
+    customPrompts.forEach((prompt, index) => {
+        if (prompt.text.trim()) {
+            const useBtn = document.createElement('button');
+            useBtn.type = 'button';
+            useBtn.className = 'use-prompt-btn';
+            useBtn.textContent = prompt.name || `プロンプト ${index + 1}`;
+            useBtn.addEventListener('click', () => useCustomPrompt(index));
+            customPromptsButtons.appendChild(useBtn);
+        }
+    });
+}
+
+// Save custom prompts to localStorage
+function saveCustomPrompts() {
+    localStorage.setItem('custom_prompts', JSON.stringify(customPrompts));
+}
+
+// Use custom prompt
+function useCustomPrompt(index) {
+    const prompt = customPrompts[index];
+    if (prompt.text.trim()) {
+        promptInput.value = prompt.text;
+        checkPromptInput();
+        showStatus(`「${prompt.name || 'プロンプト ' + (index + 1)}」を適用しました`, 'success');
+        setTimeout(() => clearStatus(), 2000);
+    }
+}
+
+// Check prompt input and enable/disable generate button
+function checkPromptInput() {
+    const hasPrompt = promptInput.value.trim().length > 0;
+    generateBtn.disabled = !hasPrompt;
+}
+
+// Monitor prompt input
+promptInput.addEventListener('input', checkPromptInput);
+
+// Save generation settings when changed
+numImagesSelect.addEventListener('change', () => {
+    localStorage.setItem('num_images', numImagesSelect.value);
+});
+
+aspectRatioSelect.addEventListener('change', () => {
+    localStorage.setItem('aspect_ratio', aspectRatioSelect.value);
+});
+
+resolutionSelect.addEventListener('change', () => {
+    localStorage.setItem('resolution', resolutionSelect.value);
+});
+
+outputFormatSelect.addEventListener('change', () => {
+    localStorage.setItem('output_format', outputFormatSelect.value);
+});
+
+// Image library add button
+libraryAddBtn.addEventListener('click', () => {
+    if (libraryImages.length >= MAX_LIBRARY_IMAGES) {
+        showStatus(`画像ライブラリは最大${MAX_LIBRARY_IMAGES}個までです`, 'error');
+        setTimeout(() => clearStatus(), 2000);
+        return;
+    }
+    libraryFileInput.click();
+});
+
+// Image library file input
+libraryFileInput.addEventListener('change', async (e) => {
+    await handleLibraryFileSelect(e.target.files);
+    libraryFileInput.value = '';
+});
+
+// Image library drag and drop handlers
+const imageLibrarySection = document.querySelector('.image-library-section');
+
+imageLibrarySection.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    imageLibrarySection.classList.add('dragover');
+});
+
+imageLibrarySection.addEventListener('dragleave', (e) => {
+    // Only remove dragover if leaving the section entirely
+    if (e.target === imageLibrarySection) {
+        imageLibrarySection.classList.remove('dragover');
+    }
+});
+
+imageLibrarySection.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    imageLibrarySection.classList.remove('dragover');
+    await handleLibraryFileSelect(e.dataTransfer.files);
+});
+
+// Handle library file selection
+async function handleLibraryFileSelect(files) {
+    if (libraryImages.length >= MAX_LIBRARY_IMAGES) {
+        showStatus(`画像ライブラリは最大${MAX_LIBRARY_IMAGES}個までです`, 'error');
+        setTimeout(() => clearStatus(), 2000);
+        return;
+    }
+
+    const fileArray = Array.from(files);
+    const remainingSlots = MAX_LIBRARY_IMAGES - libraryImages.length;
+    const filesToAdd = fileArray.slice(0, remainingSlots);
+
+    for (const file of filesToAdd) {
+        if (file.type.startsWith('image/')) {
+            try {
+                const compressed = await compressImage(file, MAX_IMAGE_SIZE_KB);
+                libraryImages.push(compressed);
+            } catch (error) {
+                console.error('Image compression error:', error);
+                showStatus('画像の圧縮に失敗しました', 'error');
+                setTimeout(() => clearStatus(), 2000);
+            }
+        }
+    }
+
+    saveLibraryImages();
+    renderLibraryImages();
+}
+
+// Compress image to target size
+async function compressImage(file, maxSizeKB) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Start with original size
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Try different quality levels to get under maxSizeKB
+                let quality = 0.9;
+                let dataUrl;
+                let sizeKB;
+
+                const compress = () => {
+                    dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    const base64Length = dataUrl.split(',')[1].length;
+                    sizeKB = Math.round((base64Length * 3) / 4 / 1024);
+
+                    if (sizeKB > maxSizeKB && quality > 0.1) {
+                        // If still too large, reduce quality or dimensions
+                        if (quality > 0.5) {
+                            quality -= 0.1;
+                        } else {
+                            // Reduce dimensions
+                            width = Math.floor(width * 0.9);
+                            height = Math.floor(height * 0.9);
+                            canvas.width = width;
+                            canvas.height = height;
+                            ctx.drawImage(img, 0, 0, width, height);
+                            quality = 0.9;
+                        }
+                        compress();
+                    } else {
+                        resolve({
+                            id: Date.now() + Math.random(),
+                            dataUrl: dataUrl,
+                            sizeKB: sizeKB,
+                            width: width,
+                            height: height
+                        });
+                    }
+                };
+
+                compress();
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Render library images
+function renderLibraryImages() {
+    imageLibraryGrid.innerHTML = '';
+
+    libraryImages.forEach((image, index) => {
+        const item = document.createElement('div');
+        item.className = 'library-image-item';
+        item.dataset.index = index;
+
+        const img = document.createElement('img');
+        img.src = image.dataUrl;
+        img.alt = `Library ${index + 1}`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'library-image-remove';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = (e) => {
+            e.stopPropagation();
+            removeLibraryImage(index);
+        };
+
+        const sizeLabel = document.createElement('div');
+        sizeLabel.className = 'library-image-size';
+        sizeLabel.textContent = `${image.sizeKB}KB`;
+
+        item.appendChild(img);
+        item.appendChild(removeBtn);
+        item.appendChild(sizeLabel);
+
+        // Click to add to reference images
+        item.addEventListener('click', () => {
+            addLibraryImageToReference(index);
+        });
+
+        imageLibraryGrid.appendChild(item);
+    });
+}
+
+// Save library images to localStorage
+function saveLibraryImages() {
+    localStorage.setItem('library_images', JSON.stringify(libraryImages));
+}
+
+// Show confirmation dialog
+function showConfirmDialog(message, onConfirm) {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-dialog-overlay';
+
+    // Create dialog
+    const dialog = document.createElement('div');
+    dialog.className = 'confirm-dialog';
+
+    // Message
+    const messageEl = document.createElement('div');
+    messageEl.className = 'confirm-dialog-message';
+    messageEl.textContent = message;
+
+    // Buttons container
+    const buttonsEl = document.createElement('div');
+    buttonsEl.className = 'confirm-dialog-buttons';
+
+    // Yes button
+    const yesBtn = document.createElement('button');
+    yesBtn.className = 'confirm-dialog-btn yes';
+    yesBtn.textContent = 'はい';
+    yesBtn.onclick = () => {
+        document.body.removeChild(overlay);
+        onConfirm();
+    };
+
+    // No button
+    const noBtn = document.createElement('button');
+    noBtn.className = 'confirm-dialog-btn no';
+    noBtn.textContent = 'いいえ';
+    noBtn.onclick = () => {
+        document.body.removeChild(overlay);
+    };
+
+    buttonsEl.appendChild(noBtn);
+    buttonsEl.appendChild(yesBtn);
+
+    dialog.appendChild(messageEl);
+    dialog.appendChild(buttonsEl);
+    overlay.appendChild(dialog);
+
+    // Close on overlay click
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            document.body.removeChild(overlay);
+        }
+    };
+
+    document.body.appendChild(overlay);
+}
+
+// Remove library image
+function removeLibraryImage(index) {
+    showConfirmDialog('ライブラリから削除しますか？', () => {
+        libraryImages.splice(index, 1);
+        saveLibraryImages();
+        renderLibraryImages();
+    });
+}
+
+// Add library image to reference images
+function addLibraryImageToReference(index) {
+    if (uploadedImages.length >= 4) {
+        showStatus('参照画像は最大4枚までです', 'error');
+        setTimeout(() => clearStatus(), 2000);
+        return;
+    }
+
+    const libraryImage = libraryImages[index];
+
+    // Convert dataUrl back to file
+    fetch(libraryImage.dataUrl)
+        .then(res => res.blob())
+        .then(blob => {
+            const file = new File([blob], `library-${index}.jpg`, { type: 'image/jpeg' });
+            uploadedImages.push({
+                file: file,
+                dataUrl: libraryImage.dataUrl
+            });
+            updateImagePreview();
+            showStatus('参照画像に追加しました', 'success');
+            setTimeout(() => clearStatus(), 1500);
+        });
+}
 
 // Save API key button
 saveApiKeyBtn.addEventListener('click', () => {
@@ -79,8 +522,8 @@ function clearStatus() {
     statusDiv.className = 'status';
 }
 
-// Image upload handlers
-imageUploadArea.addEventListener('click', () => {
+// Image upload handlers - using capture phase to prevent bubbling issues
+uploadDropZone.addEventListener('click', () => {
     if (uploadedImages.length < 4) {
         imageFileInput.click();
     }
@@ -90,19 +533,38 @@ imageFileInput.addEventListener('change', (e) => {
     handleFileSelect(e.target.files);
 });
 
+// Camera button handler
+cameraBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (uploadedImages.length < 4) {
+        cameraFileInput.click();
+    } else {
+        showStatus('参照画像は最大4枚までです', 'error');
+        setTimeout(() => clearStatus(), 2000);
+    }
+});
+
+// Camera file input handler
+cameraFileInput.addEventListener('change', (e) => {
+    handleFileSelect(e.target.files);
+    cameraFileInput.value = ''; // Reset for next use
+});
+
 // Drag and drop handlers
-imageUploadArea.addEventListener('dragover', (e) => {
+uploadDropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
-    imageUploadArea.classList.add('dragover');
+    uploadDropZone.classList.add('dragover');
 });
 
-imageUploadArea.addEventListener('dragleave', () => {
-    imageUploadArea.classList.remove('dragover');
+uploadDropZone.addEventListener('dragleave', () => {
+    uploadDropZone.classList.remove('dragover');
 });
 
-imageUploadArea.addEventListener('drop', (e) => {
+uploadDropZone.addEventListener('drop', (e) => {
     e.preventDefault();
-    imageUploadArea.classList.remove('dragover');
+    uploadDropZone.classList.remove('dragover');
     handleFileSelect(e.dataTransfer.files);
 });
 
@@ -131,9 +593,9 @@ function updateImagePreview() {
     imagePreviewContainer.innerHTML = '';
 
     if (uploadedImages.length === 0) {
-        uploadPlaceholder.style.display = 'block';
+        uploadControls.style.display = 'flex';
     } else {
-        uploadPlaceholder.style.display = 'none';
+        uploadControls.style.display = 'none';
 
         uploadedImages.forEach((image, index) => {
             const previewItem = document.createElement('div');
@@ -274,15 +736,27 @@ async function uploadFalImage(blob, mimeType, filename, apiKey) {
 
 // Set loading state
 function setLoading(isLoading) {
-    generateBtn.disabled = isLoading;
     if (isLoading) {
+        generateBtn.disabled = true;
         btnText.style.display = 'none';
         btnLoader.style.display = 'inline-block';
+        cancelBtn.style.display = 'block';
+        isCancelled = false;
     } else {
+        checkPromptInput(); // Re-enable based on prompt
         btnText.style.display = 'inline-block';
         btnLoader.style.display = 'none';
+        cancelBtn.style.display = 'none';
     }
 }
+
+// Cancel generation
+cancelBtn.addEventListener('click', () => {
+    isCancelled = true;
+    setLoading(false);
+    showStatus('生成をキャンセルしました', 'info');
+    console.log('Generation cancelled by user');
+});
 
 // Call FAL API
 async function callFalAPI(apiKey, params, useEditMode = false) {
@@ -310,8 +784,16 @@ async function callFalAPI(apiKey, params, useEditMode = false) {
 
         const submitData = await submitResponse.json();
         const requestId = submitData.request_id;
-        const statusUrl = submitData.status_url || `${FAL_API_URL}/requests/${requestId}/status`;
-        const resultUrl = `${FAL_API_URL}/requests/${requestId}`;
+        const statusUrl = submitData.status_url || `${baseUrl}/requests/${requestId}/status`;
+        const resultUrl = submitData.response_url || `${baseUrl}/requests/${requestId}`;
+
+        console.log('API Request submitted:', {
+            endpoint: FAL_API_URL,
+            requestId: requestId,
+            statusUrl: statusUrl,
+            resultUrl: resultUrl,
+            useEditMode: useEditMode
+        });
 
         showStatus('リクエストを送信しました。画像を生成中...', 'info');
 
@@ -320,7 +802,19 @@ async function callFalAPI(apiKey, params, useEditMode = false) {
         const maxAttempts = 60; // 5 minutes max (5s interval)
 
         while (attempts < maxAttempts) {
+            // Check if cancelled
+            if (isCancelled) {
+                console.log('Generation cancelled during polling');
+                throw new Error('生成がキャンセルされました');
+            }
+
             await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+
+            // Check again after wait
+            if (isCancelled) {
+                console.log('Generation cancelled during polling');
+                throw new Error('生成がキャンセルされました');
+            }
 
             const statusResponse = await fetch(statusUrl, {
                 headers: {
@@ -333,21 +827,55 @@ async function callFalAPI(apiKey, params, useEditMode = false) {
             }
 
             const statusData = await statusResponse.json();
+            console.log('Status check response:', {
+                status: statusData.status,
+                hasImages: !!(statusData.images && statusData.images.length > 0),
+                attempt: attempts + 1
+            });
 
             if (statusData.status === 'COMPLETED') {
-                // Fetch the actual result
-                const resultResponse = await fetch(resultUrl, {
-                    headers: {
-                        'Authorization': `Key ${apiKey}`,
-                    }
-                });
-
-                if (!resultResponse.ok) {
-                    throw new Error(`Result fetch failed: ${resultResponse.status}`);
+                // Check if result is already in statusData
+                if (statusData.images && statusData.images.length > 0) {
+                    console.log('✓ Result found in status response, returning directly');
+                    return statusData;
                 }
 
-                const result = await resultResponse.json();
-                return result;
+                // Otherwise, fetch the actual result
+                console.log('Fetching result from:', resultUrl);
+                try {
+                    const resultResponse = await fetch(resultUrl, {
+                        headers: {
+                            'Authorization': `Key ${apiKey}`,
+                        }
+                    });
+
+                    console.log('Result fetch response status:', resultResponse.status);
+
+                    if (!resultResponse.ok) {
+                        console.warn(`✗ Result fetch failed with status ${resultResponse.status}`);
+                        // If result fetch fails but we have statusData, try to use it
+                        if (statusData) {
+                            console.log('Using statusData as fallback (response not ok)');
+                            return statusData;
+                        }
+                        throw new Error(`Result fetch failed: ${resultResponse.status}`);
+                    }
+
+                    const result = await resultResponse.json();
+                    console.log('✓ Result fetched successfully:', {
+                        hasImages: !!(result.images && result.images.length > 0),
+                        hasData: !!(result.data)
+                    });
+                    return result;
+                } catch (resultError) {
+                    console.error('✗ Result fetch error:', resultError);
+                    // If result fetch fails but we have completed status, try to use statusData
+                    if (statusData) {
+                        console.log('Using statusData as fallback (error caught)');
+                        return statusData;
+                    }
+                    throw resultError;
+                }
             } else if (statusData.status === 'FAILED') {
                 throw new Error(statusData.error || '画像生成に失敗しました');
             }
@@ -363,7 +891,11 @@ async function callFalAPI(apiKey, params, useEditMode = false) {
 
         throw new Error('タイムアウト: 画像生成に時間がかかりすぎています');
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('API Error Details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         throw error;
     }
 }
@@ -496,11 +1028,3 @@ async function generateImages() {
 
 // Event listener
 generateBtn.addEventListener('click', generateImages);
-
-// Allow Enter key in prompt (with Shift+Enter for new line)
-promptInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        generateImages();
-    }
-});
