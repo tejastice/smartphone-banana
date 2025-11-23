@@ -795,20 +795,15 @@ function handleFileSelect(files) {
 function updateImagePreview() {
     imagePreviewContainer.innerHTML = '';
 
-    if (uploadedImages.length === 0) {
-        uploadControls.style.display = 'flex';
-        uploadDropZone.style.display = 'flex';
-        cameraZone.style.display = 'flex';
-    } else if (uploadedImages.length >= 4) {
+    if (uploadedImages.length >= 4) {
         // Hide upload controls only when 4 images are uploaded
         uploadControls.style.display = 'none';
     } else {
-        // Show only camera button when 1-3 images are uploaded
-        uploadDropZone.style.display = 'none';
-        cameraZone.style.display = 'flex';
-        uploadControls.style.display = 'flex';
+        // Hide original upload controls and show them in grid instead
+        uploadControls.style.display = 'none';
     }
 
+    // Add uploaded images to grid
     uploadedImages.forEach((image, index) => {
         const previewItem = document.createElement('div');
         previewItem.className = 'image-preview-item';
@@ -829,6 +824,51 @@ function updateImagePreview() {
         previewItem.appendChild(removeBtn);
         imagePreviewContainer.appendChild(previewItem);
     });
+
+    // Add drop zone and camera button to grid when 0-3 images are uploaded
+    if (uploadedImages.length < 4) {
+        // Drop zone
+        const dropZoneGrid = document.createElement('div');
+        dropZoneGrid.className = 'upload-drop-zone-grid';
+        dropZoneGrid.innerHTML = `
+            <p>📁</p>
+            <small>クリック or ドラッグ&ドロップ</small>
+        `;
+        dropZoneGrid.onclick = () => imageFileInput.click();
+
+        // Drag & drop for grid drop zone
+        dropZoneGrid.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZoneGrid.classList.add('dragover');
+        });
+        dropZoneGrid.addEventListener('dragleave', () => {
+            dropZoneGrid.classList.remove('dragover');
+        });
+        dropZoneGrid.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZoneGrid.classList.remove('dragover');
+            handleFileSelect(e.dataTransfer.files);
+        });
+
+        imagePreviewContainer.appendChild(dropZoneGrid);
+
+        // Camera button
+        const cameraGridItem = document.createElement('div');
+        cameraGridItem.className = 'camera-zone-grid';
+
+        const cameraBtnClone = document.createElement('button');
+        cameraBtnClone.className = 'camera-btn';
+        cameraBtnClone.onclick = () => cameraFileInput.click();
+
+        const cameraIconClone = document.createElement('img');
+        cameraIconClone.src = './icons/camera.png';
+        cameraIconClone.alt = 'Camera';
+        cameraIconClone.className = 'camera-icon';
+
+        cameraBtnClone.appendChild(cameraIconClone);
+        cameraGridItem.appendChild(cameraBtnClone);
+        imagePreviewContainer.appendChild(cameraGridItem);
+    }
 
     // Reset file input
     imageFileInput.value = '';
