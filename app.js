@@ -67,6 +67,131 @@ function showUpdateNotification(worker) {
     console.log('Update notification shown to user');
 }
 
+// PWA Install Prompt
+let deferredPrompt;
+const installButton = document.getElementById('installButton');
+
+// Capture the beforeinstallprompt event
+window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('beforeinstallprompt event fired');
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+    // Stash the event so it can be triggered later
+    deferredPrompt = e;
+    // Show install button
+    if (installButton) {
+        installButton.style.display = 'block';
+    }
+    // Show install banner if not dismissed before
+    showInstallBanner();
+});
+
+// Install button click handler
+if (installButton) {
+    installButton.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+            console.log('No deferred prompt available');
+            return;
+        }
+        // Show the install prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        // Clear the deferredPrompt
+        deferredPrompt = null;
+        // Hide install button and banner
+        installButton.style.display = 'none';
+        hideInstallBanner();
+    });
+}
+
+// Show install banner (toast-style)
+function showInstallBanner() {
+    // Check if banner was dismissed
+    const dismissed = localStorage.getItem('install_banner_dismissed');
+    if (dismissed) {
+        console.log('Install banner was previously dismissed');
+        return;
+    }
+
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('App is already installed');
+        return;
+    }
+
+    const banner = document.createElement('div');
+    banner.id = 'install-banner';
+    banner.className = 'install-banner';
+    banner.innerHTML = `
+        <div class="install-banner-content">
+            <div class="install-banner-icon">📱</div>
+            <div class="install-banner-text">
+                <div class="install-banner-title">アプリをインストール</div>
+                <div class="install-banner-desc">ホーム画面に追加して簡単にアクセス</div>
+            </div>
+        </div>
+        <div class="install-banner-actions">
+            <button class="install-banner-btn install-btn" id="bannerInstallBtn">インストール</button>
+            <button class="install-banner-btn dismiss-btn" id="bannerDismissBtn">×</button>
+        </div>
+    `;
+
+    document.body.appendChild(banner);
+
+    // Install button in banner
+    const bannerInstallBtn = document.getElementById('bannerInstallBtn');
+    bannerInstallBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+            console.log('No deferred prompt available');
+            return;
+        }
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        deferredPrompt = null;
+        hideInstallBanner();
+        if (installButton) {
+            installButton.style.display = 'none';
+        }
+    });
+
+    // Dismiss button
+    const bannerDismissBtn = document.getElementById('bannerDismissBtn');
+    bannerDismissBtn.addEventListener('click', () => {
+        localStorage.setItem('install_banner_dismissed', 'true');
+        hideInstallBanner();
+    });
+
+    // Auto show with animation
+    setTimeout(() => {
+        banner.classList.add('show');
+    }, 2000);
+
+    console.log('Install banner shown');
+}
+
+// Hide install banner
+function hideInstallBanner() {
+    const banner = document.getElementById('install-banner');
+    if (banner) {
+        banner.classList.remove('show');
+        setTimeout(() => banner.remove(), 300);
+    }
+}
+
+// Detect when PWA is installed
+window.addEventListener('appinstalled', () => {
+    console.log('PWA was installed');
+    hideInstallBanner();
+    if (installButton) {
+        installButton.style.display = 'none';
+    }
+    // Clear dismissal flag
+    localStorage.removeItem('install_banner_dismissed');
+});
+
 // DOM elements
 const promptInput = document.getElementById('prompt');
 const numImagesSelect = document.getElementById('num_images');

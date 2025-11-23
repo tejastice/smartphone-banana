@@ -69,6 +69,28 @@ header h1 {
     margin-left: 6px;
 }
 
+.install-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: var(--bg-color);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.install-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.install-button:active {
+    transform: scale(0.95);
+}
+
 .info-links {
     margin: 8px 0 12px 0;
 }
@@ -986,5 +1008,128 @@ footer a:hover {
             transform: translateY(0);
             opacity: 1;
         }
+    }
+}
+
+/* Install banner (toast-style) */
+.install-banner {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(150px);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    z-index: 9999;
+    max-width: 90%;
+    width: 420px;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.install-banner.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.install-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.install-banner-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.install-banner-text {
+    flex: 1;
+}
+
+.install-banner-title {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 2px;
+}
+
+.install-banner-desc {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.install-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.install-banner-btn {
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.install-banner-btn.install-btn {
+    background: white;
+    color: #667eea;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+}
+
+.install-banner-btn.install-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.05);
+}
+
+.install-banner-btn.install-btn:active {
+    transform: scale(0.95);
+}
+
+.install-banner-btn.dismiss-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 6px 10px;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.install-banner-btn.dismiss-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .install-banner {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-width: none;
+        transform: translateY(150px);
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .install-banner.show {
+        transform: translateY(0);
+    }
+
+    .install-banner-actions {
+        width: 100%;
+    }
+
+    .install-banner-btn.install-btn {
+        flex: 1;
     }
 }
