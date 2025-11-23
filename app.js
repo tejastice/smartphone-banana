@@ -1,10 +1,70 @@
-// Service Worker registration
+// Service Worker registration with update detection
 if ('serviceWorker' in navigator) {
+    let refreshing = false;
+
+    // Detect controller change and reload
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        console.log('Controller changed, reloading page...');
+        window.location.reload();
+    });
+
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
-            .then(registration => console.log('ServiceWorker registered:', registration))
+            .then(registration => {
+                console.log('ServiceWorker registered:', registration);
+
+                // Check for waiting service worker
+                if (registration.waiting) {
+                    showUpdateNotification(registration.waiting);
+                }
+
+                // Listen for new service worker
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    console.log('New service worker found, installing...');
+
+                    newWorker.addEventListener('statechange', () => {
+                        console.log('Service worker state changed to:', newWorker.state);
+
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // New service worker is ready
+                            console.log('New service worker installed, showing update notification');
+                            showUpdateNotification(newWorker);
+                        }
+                    });
+                });
+            })
             .catch(error => console.log('ServiceWorker registration failed:', error));
     });
+}
+
+// Show update notification to user
+function showUpdateNotification(worker) {
+    // Create notification banner
+    const banner = document.createElement('div');
+    banner.id = 'update-notification';
+    banner.className = 'update-notification';
+
+    const message = document.createElement('div');
+    message.className = 'update-message';
+    message.textContent = '新しいバージョンがあります';
+
+    const button = document.createElement('button');
+    button.className = 'update-button';
+    button.textContent = '更新する';
+    button.onclick = () => {
+        console.log('User clicked update button, sending SKIP_WAITING message');
+        worker.postMessage({ type: 'SKIP_WAITING' });
+        banner.remove();
+    };
+
+    banner.appendChild(message);
+    banner.appendChild(button);
+    document.body.appendChild(banner);
+
+    console.log('Update notification shown to user');
 }
 
 // DOM elements

@@ -21,7 +21,7 @@ Access at `http://localhost:8000`
 - Current format: `v0.1.x` where x increments with each change
 - Location: `<h1>Smartphone Banana <span class="version">v0.1.x</span></h1>`
 - Update the version number in the h1 tag for ANY modification
-- Current version: v0.1.27
+- Current version: v0.1.28
 
 ## Architecture
 
@@ -87,8 +87,10 @@ Handle both `result.data` and direct `result` for compatibility.
 
 ### Service Worker Caching
 
-Cache name: `smartphone-banana-v2`
-- Increment cache version when making breaking changes to cached resources
+Cache name follows app version: `smartphone-banana-v0.1.x`
+- **IMPORTANT**: When updating app version in index.html, also update CACHE_NAME in sw.js to match
+- Example: v0.1.28 in index.html → `const CACHE_NAME = 'smartphone-banana-v0.1.28';` in sw.js
+- This ensures cache invalidation on every version update
 - Current cached files: index.html, style.css, app.js, manifest.json, icons
 
 ## Key Components

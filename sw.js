@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartphone-banana-v2';
+const CACHE_NAME = 'smartphone-banana-v0.1.28';
 const urlsToCache = [
     './',
     './index.html',
@@ -6,11 +6,15 @@ const urlsToCache = [
     './app.js',
     './manifest.json',
     './icons/icon-192.png',
-    './icons/icon-512.png'
+    './icons/icon-512.png',
+    './icons/camera.png'
 ];
 
 // Install service worker and cache resources
 self.addEventListener('install', (event) => {
+    // Skip waiting to activate new service worker immediately
+    self.skipWaiting();
+
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
@@ -69,10 +73,21 @@ self.addEventListener('activate', (event) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     if (cacheWhitelist.indexOf(cacheName) === -1) {
+                        console.log('Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
             );
+        }).then(() => {
+            // Take control of all pages immediately
+            return self.clients.claim();
         })
     );
+});
+
+// Listen for skip waiting message from page
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
