@@ -731,6 +731,12 @@ function saveOutputImages(images) {
     localStorage.setItem('output_images', JSON.stringify(images));
 }
 
+// Check if device is iOS
+function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+           (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
+}
+
 // Display saved output images (on page load)
 function displaySavedOutputImages(images) {
     resultsDiv.innerHTML = '';
@@ -770,7 +776,51 @@ function displaySavedOutputImages(images) {
             }
         };
 
+        // Share button
+        const shareBtn = document.createElement('button');
+        shareBtn.textContent = '共有';
+        shareBtn.className = 'share-btn';
+        shareBtn.onclick = async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(image.url);
+                const blob = await response.blob();
+                const file = new File([blob], image.file_name || `banana-${Date.now()}-${index}.png`, { type: blob.type });
+
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Smartphone Banana - 生成画像',
+                    });
+                } else if (navigator.share) {
+                    await navigator.share({
+                        title: 'Smartphone Banana - 生成画像',
+                        url: image.url
+                    });
+                } else {
+                    showStatus('この端末では共有機能が使えません', 'error');
+                    setTimeout(() => clearStatus(), 2000);
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Share failed:', error);
+                    showStatus('共有に失敗しました', 'error');
+                    setTimeout(() => clearStatus(), 2000);
+                }
+            }
+        };
+
         actions.appendChild(downloadLink);
+        actions.appendChild(shareBtn);
+
+        // iOS hint for saving images
+        if (isIOS()) {
+            const iosHint = document.createElement('div');
+            iosHint.className = 'ios-save-hint';
+            iosHint.textContent = '💡 iPhoneは画像を長押しで保存';
+            actions.appendChild(iosHint);
+        }
+
         resultItem.appendChild(img);
         resultItem.appendChild(actions);
         resultsDiv.appendChild(resultItem);
@@ -1450,7 +1500,53 @@ function displayResults(data) {
             }
         };
 
+        // Share button
+        const shareBtn = document.createElement('button');
+        shareBtn.textContent = '共有';
+        shareBtn.className = 'share-btn';
+        shareBtn.onclick = async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(image.url);
+                const blob = await response.blob();
+                const file = new File([blob], image.file_name || `banana-${Date.now()}-${index}.png`, { type: blob.type });
+
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Smartphone Banana - 生成画像',
+                    });
+                } else if (navigator.share) {
+                    // Fallback: share URL only
+                    await navigator.share({
+                        title: 'Smartphone Banana - 生成画像',
+                        url: image.url
+                    });
+                } else {
+                    // Web Share API not supported
+                    showStatus('この端末では共有機能が使えません', 'error');
+                    setTimeout(() => clearStatus(), 2000);
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Share failed:', error);
+                    showStatus('共有に失敗しました', 'error');
+                    setTimeout(() => clearStatus(), 2000);
+                }
+            }
+        };
+
         actions.appendChild(downloadLink);
+        actions.appendChild(shareBtn);
+
+        // iOS hint for saving images
+        if (isIOS()) {
+            const iosHint = document.createElement('div');
+            iosHint.className = 'ios-save-hint';
+            iosHint.textContent = '💡 iPhoneは画像を長押しで保存';
+            actions.appendChild(iosHint);
+        }
+
         resultItem.appendChild(img);
         resultItem.appendChild(actions);
         resultsDiv.appendChild(resultItem);
