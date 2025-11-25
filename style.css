@@ -481,7 +481,7 @@ select:focus {
     color: var(--text-color);
     font-size: 0.75rem;
     resize: vertical;
-    min-height: 40px;
+    min-height: 80px;
 }
 
 .custom-prompts-buttons {
