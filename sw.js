@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartphone-banana-v1.0.23';
+const CACHE_NAME = 'smartphone-banana-v1.0.25';
 const urlsToCache = [
     './',
     './index.html',

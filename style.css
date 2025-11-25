@@ -463,14 +463,37 @@ select:focus {
     border-radius: 6px;
 }
 
+.custom-prompt-header {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .custom-prompt-name-input {
-    width: 100%;
+    flex: 1;
     padding: 4px 6px;
     background: var(--input-bg);
     border: 1px solid var(--border-color);
     border-radius: 4px;
     color: var(--text-color);
     font-size: 0.8rem;
+}
+
+.custom-prompt-copy-btn {
+    padding: 4px 10px;
+    background: var(--primary-color);
+    color: var(--bg-color);
+    border: none;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+}
+
+.custom-prompt-copy-btn:hover {
+    background: var(--primary-hover);
 }
 
 .custom-prompt-text {

@@ -452,6 +452,10 @@ function renderCustomPrompts() {
         const item = document.createElement('div');
         item.className = 'custom-prompt-item';
 
+        // Header row with name input and copy button
+        const headerRow = document.createElement('div');
+        headerRow.className = 'custom-prompt-header';
+
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
         nameInput.className = 'custom-prompt-name-input';
@@ -462,6 +466,27 @@ function renderCustomPrompts() {
             saveCustomPrompts();
             renderCustomPromptsButtons();
         });
+
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'custom-prompt-copy-btn';
+        copyBtn.textContent = 'コピー';
+        copyBtn.onclick = async () => {
+            if (prompt.text) {
+                try {
+                    await navigator.clipboard.writeText(prompt.text);
+                    copyBtn.textContent = 'コピー済';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'コピー';
+                    }, 1500);
+                } catch (err) {
+                    console.error('Copy failed:', err);
+                }
+            }
+        };
+
+        headerRow.appendChild(nameInput);
+        headerRow.appendChild(copyBtn);
 
         const textArea = document.createElement('textarea');
         textArea.className = 'custom-prompt-text';
@@ -474,7 +499,7 @@ function renderCustomPrompts() {
             renderCustomPromptsButtons();
         });
 
-        item.appendChild(nameInput);
+        item.appendChild(headerRow);
         item.appendChild(textArea);
         customPromptsList.appendChild(item);
     });
