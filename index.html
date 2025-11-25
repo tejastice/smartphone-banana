@@ -102,7 +102,7 @@
             <div class="header-content">
                 <img src="icons/icon-192.png" alt="Smartphone Banana" class="header-icon">
                 <div class="header-text">
-                    <h1>Smartphone Banana <span class="version">v1.0.25</span></h1>
+                    <h1>Smartphone Banana <span class="version">v1.0.26</span></h1>
                 </div>
                 <button id="installButton" class="install-button" style="display: none;" title="アプリをインストール">
                     📥
@@ -148,7 +148,10 @@
 
                 <hr class="section-divider">
 
-                <label for="prompt">プロンプトを入力してください:</label>
+                <div class="label-with-clear">
+                    <label for="prompt">プロンプトを入力してください:</label>
+                    <button type="button" class="clear-btn" id="clearPromptBtn">クリア</button>
+                </div>
                 <textarea
                     id="prompt"
                     rows="4"
@@ -171,7 +174,10 @@
                 <hr class="section-divider">
 
                 <div class="image-upload-section">
-                    <label>参照画像 (最大4枚、オプション):</label>
+                    <div class="label-with-clear">
+                        <label>参照画像 (最大4枚、オプション):</label>
+                        <button type="button" class="clear-btn" id="clearImagesBtn">すべてクリア</button>
+                    </div>
                     <input type="file" id="imageFileInput" accept="image/*" multiple style="display: none;">
                     <input type="file" id="cameraFileInput" accept="image/*" capture="environment" style="display: none;">
                     <div class="upload-controls" id="uploadControls">

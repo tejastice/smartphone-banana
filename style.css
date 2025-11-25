@@ -159,6 +159,33 @@ input[type="password"]:focus {
     border-color: var(--primary-color);
 }
 
+.label-with-clear {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.label-with-clear label {
+    margin-bottom: 0;
+}
+
+.clear-btn {
+    padding: 2px 8px;
+    background: transparent;
+    color: #888;
+    border: 1px solid #888;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+    background: #888;
+    color: var(--bg-color);
+}
+
 .image-upload-section {
     margin-bottom: 8px;
 }

@@ -228,6 +228,8 @@ const imageLibraryGrid = document.getElementById('imageLibraryGrid');
 const officialLibraryToggle = document.getElementById('officialLibraryToggle');
 const officialLibraryContent = document.getElementById('officialLibraryContent');
 const officialLibraryGrid = document.getElementById('officialLibraryGrid');
+const clearPromptBtn = document.getElementById('clearPromptBtn');
+const clearImagesBtn = document.getElementById('clearImagesBtn');
 
 // Image upload state
 let uploadedImages = [];
@@ -1670,3 +1672,17 @@ async function generateImages() {
 
 // Event listener
 generateBtn.addEventListener('click', generateImages);
+
+// Clear prompt button
+clearPromptBtn.addEventListener('click', () => {
+    promptInput.value = '';
+    localStorage.setItem('saved_prompt', '');
+    checkPromptInput();
+});
+
+// Clear images button
+clearImagesBtn.addEventListener('click', () => {
+    uploadedImages = [];
+    saveReferenceImages();
+    updateImagePreview();
+});
