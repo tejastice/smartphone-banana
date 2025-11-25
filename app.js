@@ -790,11 +790,9 @@ function displaySavedOutputImages(images) {
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
                         files: [file],
-                        title: 'Smartphone Banana - 生成画像',
                     });
                 } else if (navigator.share) {
                     await navigator.share({
-                        title: 'Smartphone Banana - 生成画像',
                         url: image.url
                     });
                 } else {
