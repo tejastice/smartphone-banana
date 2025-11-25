@@ -335,7 +335,7 @@ function checkApiKey() {
 }
 
 // Load saved API key, custom prompts, and library images from localStorage
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     const savedApiKey = localStorage.getItem('fal_api_key');
     if (savedApiKey) {
         apiKeyInput.value = savedApiKey;
@@ -360,6 +360,51 @@ window.addEventListener('DOMContentLoaded', () => {
     const savedOutputFormat = localStorage.getItem('output_format');
     if (savedOutputFormat) {
         outputFormatSelect.value = savedOutputFormat;
+    }
+
+    // Load saved prompt
+    const savedPrompt = localStorage.getItem('saved_prompt');
+    if (savedPrompt) {
+        promptInput.value = savedPrompt;
+    }
+
+    // Load saved reference images
+    const savedReferenceImages = localStorage.getItem('reference_images');
+    if (savedReferenceImages) {
+        try {
+            const savedImages = JSON.parse(savedReferenceImages);
+            // fileオブジェクトを復元（dataUrlからBlobを作成）
+            uploadedImages = [];
+            for (const img of savedImages) {
+                if (img.dataUrl) {
+                    // dataUrlからBlobを作成してFileオブジェクトを復元
+                    const response = await fetch(img.dataUrl);
+                    const blob = await response.blob();
+                    const file = new File([blob], img.fileName || 'image.jpg', { type: blob.type });
+                    uploadedImages.push({
+                        file: file,
+                        dataUrl: img.dataUrl
+                    });
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load reference images:', e);
+            uploadedImages = [];
+        }
+    }
+
+    // Load saved output images
+    const savedOutputImages = localStorage.getItem('output_images');
+    if (savedOutputImages) {
+        try {
+            const outputImages = JSON.parse(savedOutputImages);
+            if (outputImages && outputImages.length > 0) {
+                // Display saved output images
+                displaySavedOutputImages(outputImages);
+            }
+        } catch (e) {
+            console.error('Failed to load saved output images:', e);
+        }
     }
 
     // Load custom prompts
@@ -475,8 +520,12 @@ function checkPromptInput() {
     generateBtn.disabled = !hasPrompt;
 }
 
-// Monitor prompt input
-promptInput.addEventListener('input', checkPromptInput);
+// Monitor prompt input and auto-save
+promptInput.addEventListener('input', () => {
+    checkPromptInput();
+    // Auto-save prompt
+    localStorage.setItem('saved_prompt', promptInput.value);
+});
 
 // Save generation settings when changed
 numImagesSelect.addEventListener('change', () => {
@@ -665,6 +714,67 @@ function renderLibraryImages() {
 // Save library images to localStorage
 function saveLibraryImages() {
     localStorage.setItem('library_images', JSON.stringify(libraryImages));
+}
+
+// Save reference images to localStorage
+function saveReferenceImages() {
+    // uploadedImagesからfileを除いてdataUrlのみ保存（fileはシリアライズできない）
+    const toSave = uploadedImages.map(img => ({
+        dataUrl: img.dataUrl,
+        fileName: img.file ? img.file.name : 'image.jpg'
+    }));
+    localStorage.setItem('reference_images', JSON.stringify(toSave));
+}
+
+// Save output images to localStorage
+function saveOutputImages(images) {
+    localStorage.setItem('output_images', JSON.stringify(images));
+}
+
+// Display saved output images (on page load)
+function displaySavedOutputImages(images) {
+    resultsDiv.innerHTML = '';
+
+    images.forEach((image, index) => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'result-item';
+
+        const img = document.createElement('img');
+        img.src = image.url;
+        img.alt = `Generated image ${index + 1}`;
+        img.loading = 'lazy';
+
+        const actions = document.createElement('div');
+        actions.className = 'result-actions';
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = '#';
+        downloadLink.textContent = 'ダウンロード';
+        downloadLink.className = 'download-link';
+        downloadLink.onclick = async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(image.url);
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const tempLink = document.createElement('a');
+                tempLink.href = blobUrl;
+                tempLink.download = image.file_name || `banana-${Date.now()}-${index}.png`;
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+            } catch (error) {
+                console.error('Download failed:', error);
+                window.open(image.url, '_blank');
+            }
+        };
+
+        actions.appendChild(downloadLink);
+        resultItem.appendChild(img);
+        resultItem.appendChild(actions);
+        resultsDiv.appendChild(resultItem);
+    });
 }
 
 // Render official library images
@@ -929,6 +1039,9 @@ function updateImagePreview() {
     if (uploadControls) {
         uploadControls.style.display = 'none';
     }
+
+    // Auto-save reference images
+    saveReferenceImages();
 
     // Add uploaded images to grid
     uploadedImages.forEach((image, index) => {
@@ -1290,6 +1403,9 @@ function displayResults(data) {
         showStatus('画像が生成されませんでした', 'error');
         return;
     }
+
+    // Save output images to localStorage
+    saveOutputImages(data.images);
 
     data.images.forEach((image, index) => {
         const resultItem = document.createElement('div');
