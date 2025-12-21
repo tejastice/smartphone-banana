@@ -299,28 +299,36 @@ const OFFICIAL_TEMPLATE_IMAGES = [
 ];
 
 // Accordion toggle
-apiKeyToggle.addEventListener('click', () => {
-    apiKeyToggle.classList.toggle('active');
-    apiKeyContent.classList.toggle('active');
-});
+if (apiKeyToggle && apiKeyContent) {
+    apiKeyToggle.addEventListener('click', () => {
+        apiKeyToggle.classList.toggle('active');
+        apiKeyContent.classList.toggle('active');
+    });
+}
 
 // Custom prompts accordion toggle
-customPromptsToggle.addEventListener('click', () => {
-    customPromptsToggle.classList.toggle('active');
-    customPromptsContent.classList.toggle('active');
-});
+if (customPromptsToggle && customPromptsContent) {
+    customPromptsToggle.addEventListener('click', () => {
+        customPromptsToggle.classList.toggle('active');
+        customPromptsContent.classList.toggle('active');
+    });
+}
 
 // Image library accordion toggle
-imageLibraryToggle.addEventListener('click', () => {
-    imageLibraryToggle.classList.toggle('active');
-    imageLibraryContent.classList.toggle('active');
-});
+if (imageLibraryToggle && imageLibraryContent) {
+    imageLibraryToggle.addEventListener('click', () => {
+        imageLibraryToggle.classList.toggle('active');
+        imageLibraryContent.classList.toggle('active');
+    });
+}
 
 // Official library accordion toggle
-officialLibraryToggle.addEventListener('click', () => {
-    officialLibraryToggle.classList.toggle('active');
-    officialLibraryContent.classList.toggle('active');
-});
+if (officialLibraryToggle && officialLibraryContent) {
+    officialLibraryToggle.addEventListener('click', () => {
+        officialLibraryToggle.classList.toggle('active');
+        officialLibraryContent.classList.toggle('active');
+    });
+}
 
 // Check API key and update warning display
 function checkApiKey() {
@@ -543,70 +551,88 @@ function useCustomPrompt(index) {
 
 // Check prompt input and enable/disable generate button
 function checkPromptInput() {
-    const hasPrompt = promptInput.value.trim().length > 0;
-    generateBtn.disabled = !hasPrompt;
+    if (promptInput && generateBtn) {
+        const hasPrompt = promptInput.value.trim().length > 0;
+        generateBtn.disabled = !hasPrompt;
+    }
 }
 
 // Monitor prompt input and auto-save
-promptInput.addEventListener('input', () => {
-    checkPromptInput();
-    // Auto-save prompt
-    localStorage.setItem('saved_prompt', promptInput.value);
-});
+if (promptInput) {
+    promptInput.addEventListener('input', () => {
+        checkPromptInput();
+        // Auto-save prompt
+        localStorage.setItem('saved_prompt', promptInput.value);
+    });
+}
 
 // Save generation settings when changed
-numImagesSelect.addEventListener('change', () => {
-    localStorage.setItem('num_images', numImagesSelect.value);
-});
+if (numImagesSelect) {
+    numImagesSelect.addEventListener('change', () => {
+        localStorage.setItem('num_images', numImagesSelect.value);
+    });
+}
 
-aspectRatioSelect.addEventListener('change', () => {
-    localStorage.setItem('aspect_ratio', aspectRatioSelect.value);
-});
+if (aspectRatioSelect) {
+    aspectRatioSelect.addEventListener('change', () => {
+        localStorage.setItem('aspect_ratio', aspectRatioSelect.value);
+    });
+}
 
-resolutionSelect.addEventListener('change', () => {
-    localStorage.setItem('resolution', resolutionSelect.value);
-});
+if (resolutionSelect) {
+    resolutionSelect.addEventListener('change', () => {
+        localStorage.setItem('resolution', resolutionSelect.value);
+    });
+}
 
-outputFormatSelect.addEventListener('change', () => {
-    localStorage.setItem('output_format', outputFormatSelect.value);
-});
+if (outputFormatSelect) {
+    outputFormatSelect.addEventListener('change', () => {
+        localStorage.setItem('output_format', outputFormatSelect.value);
+    });
+}
 
 // Image library add button
-libraryAddBtn.addEventListener('click', () => {
-    if (libraryImages.length >= MAX_LIBRARY_IMAGES) {
-        showStatus(`画像ライブラリは最大${MAX_LIBRARY_IMAGES}個までです`, 'error');
-        setTimeout(() => clearStatus(), 2000);
-        return;
-    }
-    libraryFileInput.click();
-});
+if (libraryAddBtn && libraryFileInput) {
+    libraryAddBtn.addEventListener('click', () => {
+        if (libraryImages.length >= MAX_LIBRARY_IMAGES) {
+            showStatus(`画像ライブラリは最大${MAX_LIBRARY_IMAGES}個までです`, 'error');
+            setTimeout(() => clearStatus(), 2000);
+            return;
+        }
+        libraryFileInput.click();
+    });
+}
 
 // Image library file input
-libraryFileInput.addEventListener('change', async (e) => {
-    await handleLibraryFileSelect(e.target.files);
-    libraryFileInput.value = '';
-});
+if (libraryFileInput) {
+    libraryFileInput.addEventListener('change', async (e) => {
+        await handleLibraryFileSelect(e.target.files);
+        libraryFileInput.value = '';
+    });
+}
 
 // Image library drag and drop handlers
 const imageLibrarySection = document.querySelector('.image-library-section');
 
-imageLibrarySection.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    imageLibrarySection.classList.add('dragover');
-});
+if (imageLibrarySection) {
+    imageLibrarySection.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        imageLibrarySection.classList.add('dragover');
+    });
 
-imageLibrarySection.addEventListener('dragleave', (e) => {
-    // Only remove dragover if leaving the section entirely
-    if (e.target === imageLibrarySection) {
+    imageLibrarySection.addEventListener('dragleave', (e) => {
+        // Only remove dragover if leaving the section entirely
+        if (e.target === imageLibrarySection) {
+            imageLibrarySection.classList.remove('dragover');
+        }
+    });
+
+    imageLibrarySection.addEventListener('drop', async (e) => {
+        e.preventDefault();
         imageLibrarySection.classList.remove('dragover');
-    }
-});
-
-imageLibrarySection.addEventListener('drop', async (e) => {
-    e.preventDefault();
-    imageLibrarySection.classList.remove('dragover');
-    await handleLibraryFileSelect(e.dataTransfer.files);
-});
+        await handleLibraryFileSelect(e.dataTransfer.files);
+    });
+}
 
 // Handle library file selection
 async function handleLibraryFileSelect(files) {
@@ -1005,28 +1031,32 @@ function addLibraryImageToReference(index) {
 }
 
 // Save API key button
-saveApiKeyBtn.addEventListener('click', () => {
-    const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) {
-        showStatus('APIキーを入力してください', 'error');
-        return;
-    }
-    localStorage.setItem('fal_api_key', apiKey);
-    showStatus('APIキーが保存されました', 'success');
-    setTimeout(() => clearStatus(), 3000);
-    checkApiKey();
-});
-
-// Delete API key button
-deleteApiKeyBtn.addEventListener('click', () => {
-    if (confirm('保存されているAPIキーを削除しますか？')) {
-        localStorage.removeItem('fal_api_key');
-        apiKeyInput.value = '';
-        showStatus('APIキーが削除されました', 'success');
+if (saveApiKeyBtn && apiKeyInput) {
+    saveApiKeyBtn.addEventListener('click', () => {
+        const apiKey = apiKeyInput.value.trim();
+        if (!apiKey) {
+            showStatus('APIキーを入力してください', 'error');
+            return;
+        }
+        localStorage.setItem('fal_api_key', apiKey);
+        showStatus('APIキーが保存されました', 'success');
         setTimeout(() => clearStatus(), 3000);
         checkApiKey();
-    }
-});
+    });
+}
+
+// Delete API key button
+if (deleteApiKeyBtn && apiKeyInput) {
+    deleteApiKeyBtn.addEventListener('click', () => {
+        if (confirm('保存されているAPIキーを削除しますか？')) {
+            localStorage.removeItem('fal_api_key');
+            apiKeyInput.value = '';
+            showStatus('APIキーが削除されました', 'success');
+            setTimeout(() => clearStatus(), 3000);
+            checkApiKey();
+        }
+    });
+}
 
 // Status display helper
 function showStatus(message, type = 'info') {
@@ -1041,50 +1071,54 @@ function clearStatus() {
 }
 
 // Image upload handlers - using capture phase to prevent bubbling issues
-uploadDropZone.addEventListener('click', () => {
-    if (uploadedImages.length < 4) {
-        imageFileInput.click();
-    }
-});
+if (uploadDropZone && imageFileInput) {
+    uploadDropZone.addEventListener('click', () => {
+        if (uploadedImages.length < 4) {
+            imageFileInput.click();
+        }
+    });
 
-imageFileInput.addEventListener('change', (e) => {
-    handleFileSelect(e.target.files);
-});
+    imageFileInput.addEventListener('change', (e) => {
+        handleFileSelect(e.target.files);
+    });
+
+    // Drag and drop handlers
+    uploadDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadDropZone.classList.add('dragover');
+    });
+
+    uploadDropZone.addEventListener('dragleave', () => {
+        uploadDropZone.classList.remove('dragover');
+    });
+
+    uploadDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadDropZone.classList.remove('dragover');
+        handleFileSelect(e.dataTransfer.files);
+    });
+}
 
 // Camera button handler
-cameraBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+if (cameraBtn && cameraFileInput) {
+    cameraBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-    if (uploadedImages.length < 4) {
-        cameraFileInput.click();
-    } else {
-        showStatus('参照画像は最大4枚までです', 'error');
-        setTimeout(() => clearStatus(), 2000);
-    }
-});
+        if (uploadedImages.length < 4) {
+            cameraFileInput.click();
+        } else {
+            showStatus('参照画像は最大4枚までです', 'error');
+            setTimeout(() => clearStatus(), 2000);
+        }
+    });
 
-// Camera file input handler
-cameraFileInput.addEventListener('change', (e) => {
-    handleFileSelect(e.target.files);
-    cameraFileInput.value = ''; // Reset for next use
-});
-
-// Drag and drop handlers
-uploadDropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadDropZone.classList.add('dragover');
-});
-
-uploadDropZone.addEventListener('dragleave', () => {
-    uploadDropZone.classList.remove('dragover');
-});
-
-uploadDropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadDropZone.classList.remove('dragover');
-    handleFileSelect(e.dataTransfer.files);
-});
+    // Camera file input handler
+    cameraFileInput.addEventListener('change', (e) => {
+        handleFileSelect(e.target.files);
+        cameraFileInput.value = ''; // Reset for next use
+    });
+}
 
 // Handle file selection
 function handleFileSelect(files) {
@@ -1321,12 +1355,14 @@ function setLoading(isLoading) {
 }
 
 // Cancel generation
-cancelBtn.addEventListener('click', () => {
-    isCancelled = true;
-    setLoading(false);
-    showStatus('生成をキャンセルしました', 'info');
-    console.log('Generation cancelled by user');
-});
+if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+        isCancelled = true;
+        setLoading(false);
+        showStatus('生成をキャンセルしました', 'info');
+        console.log('Generation cancelled by user');
+    });
+}
 
 // Call FAL API
 async function callFalAPI(apiKey, params, useEditMode = false) {
@@ -1582,6 +1618,12 @@ function displayResults(data) {
 
 // Generate images
 async function generateImages() {
+    // Check if required elements exist
+    if (!promptInput || !apiKeyInput) {
+        showStatus('ページの読み込みに失敗しました。ページを再読み込みしてください。', 'error');
+        return;
+    }
+
     const prompt = promptInput.value.trim();
     const apiKey = apiKeyInput.value.trim();
 
@@ -1605,10 +1647,10 @@ async function generateImages() {
     // Prepare request parameters
     const params = {
         prompt: prompt,
-        num_images: parseInt(numImagesSelect.value),
-        aspect_ratio: aspectRatioSelect.value,
-        resolution: resolutionSelect.value,
-        output_format: outputFormatSelect.value,
+        num_images: numImagesSelect ? parseInt(numImagesSelect.value) : 1,
+        aspect_ratio: aspectRatioSelect ? aspectRatioSelect.value : '1:1',
+        resolution: resolutionSelect ? resolutionSelect.value : '1K',
+        output_format: outputFormatSelect ? outputFormatSelect.value : 'jpeg',
     };
 
     setLoading(true);
@@ -1671,18 +1713,26 @@ async function generateImages() {
 }
 
 // Event listener
-generateBtn.addEventListener('click', generateImages);
+if (generateBtn) {
+    generateBtn.addEventListener('click', generateImages);
+}
 
 // Clear prompt button
-clearPromptBtn.addEventListener('click', () => {
-    promptInput.value = '';
-    localStorage.setItem('saved_prompt', '');
-    checkPromptInput();
-});
+if (clearPromptBtn) {
+    clearPromptBtn.addEventListener('click', () => {
+        if (promptInput) {
+            promptInput.value = '';
+        }
+        localStorage.setItem('saved_prompt', '');
+        checkPromptInput();
+    });
+}
 
 // Clear images button
-clearImagesBtn.addEventListener('click', () => {
-    uploadedImages = [];
-    saveReferenceImages();
-    updateImagePreview();
-});
+if (clearImagesBtn) {
+    clearImagesBtn.addEventListener('click', () => {
+        uploadedImages = [];
+        saveReferenceImages();
+        updateImagePreview();
+    });
+}
