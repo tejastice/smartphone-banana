@@ -450,6 +450,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // 画像が0枚の状態でも、狙いのレイアウトにする
     updateImagePreview();
+
+    // Check and resume interrupted generation
+    await checkAndResumeGeneration();
 });
 
 // Render custom prompts list
@@ -783,6 +786,194 @@ function saveReferenceImages() {
 function saveOutputImages(images) {
     localStorage.setItem('output_images', JSON.stringify(images));
 }
+
+// ========== Generation State Persistence Functions ==========
+
+// Save generation state when request is submitted
+function saveGenerationState(requestId, statusUrl, resultUrl, params, useEditMode) {
+    const state = {
+        requestId,
+        statusUrl,
+        resultUrl,
+        timestamp: Date.now(),
+        status: 'polling',
+        displayedToUser: false,  // Important: initially false (not yet displayed)
+        prompt: promptInput ? promptInput.value.trim() : '',
+        referenceImages: uploadedImages.map(img => ({
+            dataUrl: img.dataUrl,
+            fileName: img.file ? img.file.name : 'image.jpg'
+        })),
+        params,
+        useEditMode
+    };
+
+    localStorage.setItem('generation_state', JSON.stringify(state));
+    console.log('Generation state saved:', state);
+}
+
+// Load generation state from localStorage
+function loadGenerationState() {
+    try {
+        const stateJson = localStorage.getItem('generation_state');
+        if (!stateJson) return null;
+
+        const state = JSON.parse(stateJson);
+
+        // Check if state is too old (24 hours)
+        const MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
+        if (Date.now() - state.timestamp > MAX_AGE) {
+            console.log('Generation state expired, removing...');
+            clearGenerationState();
+            return null;
+        }
+
+        return state;
+    } catch (e) {
+        console.error('Failed to load generation state:', e);
+        return null;
+    }
+}
+
+// Clear generation state from localStorage
+function clearGenerationState() {
+    localStorage.removeItem('generation_state');
+    console.log('Generation state cleared');
+}
+
+// Update only the status field in saved state
+function updateGenerationStatus(status) {
+    const state = loadGenerationState();
+    if (state) {
+        state.status = status;
+        localStorage.setItem('generation_state', JSON.stringify(state));
+        console.log('Generation status updated to:', status);
+    }
+}
+
+// Resume polling for an interrupted generation
+async function resumeGenerationPolling(state) {
+    const apiKey = localStorage.getItem('fal_api_key');
+    if (!apiKey) {
+        showStatus('APIキーが見つかりません', 'error');
+        clearGenerationState();
+        return;
+    }
+
+    console.log('Resuming generation polling for request:', state.requestId);
+    showStatus('前回の画像生成を再開しています...', 'info');
+
+    try {
+        let attempts = 0;
+        const maxAttempts = 60;
+
+        while (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 5000)); // 5 second wait
+
+            const statusResponse = await fetch(state.statusUrl, {
+                headers: { 'Authorization': `Key ${apiKey}` }
+            });
+
+            if (!statusResponse.ok) {
+                throw new Error(`Status check failed: ${statusResponse.status}`);
+            }
+
+            const statusData = await statusResponse.json();
+            console.log('Resume polling status:', statusData.status);
+
+            if (statusData.status === 'COMPLETED') {
+                // Fetch result
+                let result = statusData;
+                if (!statusData.images || statusData.images.length === 0) {
+                    const resultResponse = await fetch(state.resultUrl, {
+                        headers: { 'Authorization': `Key ${apiKey}` }
+                    });
+                    if (resultResponse.ok) {
+                        result = await resultResponse.json();
+                    }
+                }
+
+                const imageData = result.data || result;
+                displayResults(imageData);
+
+                updateGenerationStatus('completed');
+                return;
+
+            } else if (statusData.status === 'FAILED') {
+                throw new Error(statusData.error || '画像生成に失敗しました');
+            }
+
+            if (statusData.logs && statusData.logs.length > 0) {
+                const lastLog = statusData.logs[statusData.logs.length - 1];
+                showStatus(`生成中: ${lastLog.message || '処理中...'}`, 'info');
+            }
+
+            attempts++;
+        }
+
+        throw new Error('タイムアウト: 画像生成に時間がかかりすぎています');
+
+    } catch (error) {
+        console.error('Resume polling error:', error);
+        showStatus(`再開エラー: ${error.message}`, 'error');
+        updateGenerationStatus('failed');
+
+        // Keep state for 5 minutes for retry
+        setTimeout(() => {
+            const currentState = loadGenerationState();
+            if (currentState && currentState.status === 'failed') {
+                clearGenerationState();
+            }
+        }, 5 * 60 * 1000);
+    }
+}
+
+// Check and resume interrupted generation on app startup
+async function checkAndResumeGeneration() {
+    const state = loadGenerationState();
+
+    if (!state) {
+        console.log('No generation state found');
+        return;
+    }
+
+    console.log('Found generation state:', state);
+
+    // Skip if already displayed to user
+    if (state.displayedToUser) {
+        console.log('Generation already displayed to user, clearing state');
+        clearGenerationState();
+        return;
+    }
+
+    // If completed but not displayed, restore from output_images
+    if (state.status === 'completed') {
+        console.log('Generation completed but not displayed, restoring from output_images');
+        const outputImagesJson = localStorage.getItem('output_images');
+        if (outputImagesJson) {
+            try {
+                const images = JSON.parse(outputImagesJson);
+                if (images && images.length > 0) {
+                    displaySavedOutputImages(images);
+                    // Mark as displayed
+                    state.displayedToUser = true;
+                    localStorage.setItem('generation_state', JSON.stringify(state));
+                    return;
+                }
+            } catch (e) {
+                console.error('Failed to restore output images:', e);
+            }
+        }
+        clearGenerationState();
+        return;
+    }
+
+    // Resume polling for pending or polling status
+    if (state.status === 'pending' || state.status === 'polling') {
+        await resumeGenerationPolling(state);
+    }
+}
+
+// =============================================================
 
 // Check if device is iOS
 function isIOS() {
@@ -1401,6 +1592,9 @@ async function callFalAPI(apiKey, params, useEditMode = false) {
             useEditMode: useEditMode
         });
 
+        // Save generation state for recovery
+        saveGenerationState(requestId, statusUrl, resultUrl, params, useEditMode);
+
         showStatus('リクエストを送信しました。画像を生成中...', 'info');
 
         // Poll for results
@@ -1440,6 +1634,9 @@ async function callFalAPI(apiKey, params, useEditMode = false) {
             });
 
             if (statusData.status === 'COMPLETED') {
+                // Update generation status to completed
+                updateGenerationStatus('completed');
+
                 // Check if result is already in statusData
                 if (statusData.images && statusData.images.length > 0) {
                     console.log('✓ Result found in status response, returning directly');
@@ -1483,6 +1680,8 @@ async function callFalAPI(apiKey, params, useEditMode = false) {
                     throw resultError;
                 }
             } else if (statusData.status === 'FAILED') {
+                // Update generation status to failed
+                updateGenerationStatus('failed');
                 throw new Error(statusData.error || '画像生成に失敗しました');
             }
 
@@ -1575,12 +1774,10 @@ function displayResults(data) {
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
                         files: [file],
-                        title: 'Smartphone Banana - 生成画像',
                     });
                 } else if (navigator.share) {
                     // Fallback: share URL only
                     await navigator.share({
-                        title: 'Smartphone Banana - 生成画像',
                         url: image.url
                     });
                 } else {
@@ -1614,6 +1811,14 @@ function displayResults(data) {
     });
 
     showStatus(`${data.images.length}枚の画像を生成しました！`, 'success');
+
+    // Mark generation as displayed to user
+    const state = loadGenerationState();
+    if (state) {
+        state.displayedToUser = true;
+        localStorage.setItem('generation_state', JSON.stringify(state));
+        console.log('Generation marked as displayed to user');
+    }
 }
 
 // Generate images
@@ -1635,6 +1840,12 @@ async function generateImages() {
 
     if (!apiKey) {
         showStatus('APIキーを入力してください', 'error');
+        return;
+    }
+
+    // Check if API key contains only ASCII characters (to prevent fetch header errors)
+    if (!/^[\x00-\x7F]*$/.test(apiKey)) {
+        showStatus('APIキーに無効な文字が含まれています。英数字と記号のみ使用できます。', 'error');
         return;
     }
 
