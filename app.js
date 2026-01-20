@@ -243,7 +243,10 @@ let customPrompts = [];
 
 // Image library state
 const MAX_LIBRARY_IMAGES = 20;
-const MAX_IMAGE_SIZE_KB = 500;
+const MAX_IMAGE_SIZE_KB = 250;  // 250KB per image
+const MAX_LIBRARY_SIZE_KB = 4096;  // 4MB total for library
+const MAX_REFERENCE_SIZE_KB = 250;  // 250KB per reference image
+const MAX_IMAGE_LONG_SIDE = 800;  // 800px max for long side
 let libraryImages = [];
 
 // Official library state
@@ -637,6 +640,11 @@ if (imageLibrarySection) {
     });
 }
 
+// Calculate current library size in KB
+function getLibrarySizeKB() {
+    return libraryImages.reduce((total, img) => total + (img.sizeKB || 0), 0);
+}
+
 // Handle library file selection
 async function handleLibraryFileSelect(files) {
     if (libraryImages.length >= MAX_LIBRARY_IMAGES) {
@@ -645,15 +653,33 @@ async function handleLibraryFileSelect(files) {
         return;
     }
 
+    const currentSizeKB = getLibrarySizeKB();
+    if (currentSizeKB >= MAX_LIBRARY_SIZE_KB) {
+        showStatus(`ライブラリ容量が上限(4MB)に達しています`, 'error');
+        setTimeout(() => clearStatus(), 2000);
+        return;
+    }
+
     const fileArray = Array.from(files);
     const remainingSlots = MAX_LIBRARY_IMAGES - libraryImages.length;
     const filesToAdd = fileArray.slice(0, remainingSlots);
 
+    let addedCount = 0;
     for (const file of filesToAdd) {
         if (file.type.startsWith('image/')) {
             try {
                 const compressed = await compressImage(file, MAX_IMAGE_SIZE_KB);
+
+                // Check if adding this image would exceed the limit
+                const newTotalSizeKB = getLibrarySizeKB() + compressed.sizeKB;
+                if (newTotalSizeKB > MAX_LIBRARY_SIZE_KB) {
+                    showStatus(`ライブラリ容量上限(4MB)に達したため、一部の画像を追加できませんでした`, 'error');
+                    setTimeout(() => clearStatus(), 3000);
+                    break;
+                }
+
                 libraryImages.push(compressed);
+                addedCount++;
             } catch (error) {
                 console.error('Image compression error:', error);
                 showStatus('画像の圧縮に失敗しました', 'error');
@@ -662,12 +688,14 @@ async function handleLibraryFileSelect(files) {
         }
     }
 
-    saveLibraryImages();
-    renderLibraryImages();
+    if (addedCount > 0) {
+        saveLibraryImages();
+        renderLibraryImages();
+    }
 }
 
-// Compress image to target size
-async function compressImage(file, maxSizeKB) {
+// Compress image to target size with max long side
+async function compressImage(file, maxSizeKB, maxLongSide = MAX_IMAGE_LONG_SIDE) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -677,7 +705,14 @@ async function compressImage(file, maxSizeKB) {
                 let width = img.width;
                 let height = img.height;
 
-                // Start with original size
+                // First, resize to fit within maxLongSide
+                const longSide = Math.max(width, height);
+                if (longSide > maxLongSide) {
+                    const scale = maxLongSide / longSide;
+                    width = Math.floor(width * scale);
+                    height = Math.floor(height * scale);
+                }
+
                 canvas.width = width;
                 canvas.height = height;
 
@@ -729,6 +764,33 @@ async function compressImage(file, maxSizeKB) {
     });
 }
 
+// Update library storage indicator
+function updateLibraryStorageIndicator() {
+    const storageBarFill = document.getElementById('storageBarFill');
+    const storageText = document.getElementById('storageText');
+
+    if (!storageBarFill || !storageText) return;
+
+    const currentSizeKB = getLibrarySizeKB();
+    const percentage = Math.min(100, Math.round((currentSizeKB / MAX_LIBRARY_SIZE_KB) * 100));
+
+    // Update bar width
+    storageBarFill.style.width = `${percentage}%`;
+
+    // Update bar color based on usage
+    storageBarFill.classList.remove('warning', 'full');
+    if (percentage >= 90) {
+        storageBarFill.classList.add('full');
+    } else if (percentage >= 70) {
+        storageBarFill.classList.add('warning');
+    }
+
+    // Update text
+    const currentSizeMB = (currentSizeKB / 1024).toFixed(1);
+    const maxSizeMB = (MAX_LIBRARY_SIZE_KB / 1024).toFixed(0);
+    storageText.textContent = `${percentage}% 使用中 (${currentSizeMB}MB / ${maxSizeMB}MB)`;
+}
+
 // Render library images
 function renderLibraryImages() {
     imageLibraryGrid.innerHTML = '';
@@ -765,6 +827,9 @@ function renderLibraryImages() {
 
         imageLibraryGrid.appendChild(item);
     });
+
+    // Update storage indicator
+    updateLibraryStorageIndicator();
 }
 
 // Save library images to localStorage
@@ -799,10 +864,9 @@ function saveGenerationState(requestId, statusUrl, resultUrl, params, useEditMod
         status: 'polling',
         displayedToUser: false,  // Important: initially false (not yet displayed)
         prompt: promptInput ? promptInput.value.trim() : '',
-        referenceImages: uploadedImages.map(img => ({
-            dataUrl: img.dataUrl,
-            fileName: img.file ? img.file.name : 'image.jpg'
-        })),
+        // Note: referenceImages are already saved in 'reference_images' key (v1.0.17)
+        // so we don't duplicate them here to avoid localStorage quota errors
+        referenceImageCount: uploadedImages.length,  // Just store the count for reference
         params,
         useEditMode
     };
@@ -1311,24 +1375,42 @@ if (cameraBtn && cameraFileInput) {
     });
 }
 
-// Handle file selection
-function handleFileSelect(files) {
+// Handle file selection (with compression for reference images)
+async function handleFileSelect(files) {
     const remainingSlots = 4 - uploadedImages.length;
     const filesToAdd = Array.from(files).slice(0, remainingSlots);
 
-    filesToAdd.forEach(file => {
+    for (const file of filesToAdd) {
         if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
+            try {
+                // Compress reference image (long side 800px, max 250KB)
+                const compressed = await compressImage(file, MAX_REFERENCE_SIZE_KB);
+
+                // Create a File object from the compressed data
+                const response = await fetch(compressed.dataUrl);
+                const blob = await response.blob();
+                const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+
                 uploadedImages.push({
-                    file: file,
-                    dataUrl: e.target.result
+                    file: compressedFile,
+                    dataUrl: compressed.dataUrl
                 });
                 updateImagePreview();
-            };
-            reader.readAsDataURL(file);
+            } catch (error) {
+                console.error('Reference image compression error:', error);
+                // Fallback to original if compression fails
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedImages.push({
+                        file: file,
+                        dataUrl: e.target.result
+                    });
+                    updateImagePreview();
+                };
+                reader.readAsDataURL(file);
+            }
         }
-    });
+    }
 }
 
 // Update image preview

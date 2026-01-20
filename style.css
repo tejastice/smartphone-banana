@@ -585,6 +585,44 @@ select:focus {
     margin: 8px -8px;
 }
 
+/* Library storage indicator */
+.library-storage-info {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.storage-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--input-bg);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.storage-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.storage-bar-fill.warning {
+    background: linear-gradient(90deg, var(--secondary-color), #ff6600);
+}
+
+.storage-bar-fill.full {
+    background: linear-gradient(90deg, var(--error-color), #ff3333);
+}
+
+.storage-text {
+    font-size: 0.75rem;
+    color: #888;
+    white-space: nowrap;
+}
+
 .library-add-btn {
     width: 100%;
     padding: 8px 12px;

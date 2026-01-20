@@ -102,7 +102,7 @@
             <div class="header-content">
                 <img src="icons/icon-192.png" alt="Smartphone Banana" class="header-icon">
                 <div class="header-text">
-                    <h1>Smartphone Banana <span class="version">v1.0.29</span></h1>
+                    <h1>Smartphone Banana <span class="version">v1.0.30</span></h1>
                 </div>
                 <button id="installButton" class="install-button" style="display: none;" title="アプリをインストール">
                     📥
@@ -201,6 +201,12 @@
                     </button>
                     <div class="accordion-content" id="imageLibraryContent">
                         <div class="image-library-section">
+                            <div class="library-storage-info" id="libraryStorageInfo">
+                                <div class="storage-bar">
+                                    <div class="storage-bar-fill" id="storageBarFill"></div>
+                                </div>
+                                <span class="storage-text" id="storageText">0% 使用中 (0KB / 4MB)</span>
+                            </div>
                             <input type="file" id="libraryFileInput" accept="image/*" multiple style="display: none;">
                             <button type="button" class="library-add-btn" id="libraryAddBtn">ライブラリに画像を追加（クリックまたはドラッグ&ドロップ）</button>
                             <div class="image-library-grid" id="imageLibraryGrid"></div>
