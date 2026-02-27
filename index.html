@@ -102,7 +102,7 @@
             <div class="header-content">
                 <img src="icons/icon-192.png" alt="Smartphone Banana" class="header-icon">
                 <div class="header-text">
-                    <h1>Smartphone Banana <span class="version">v1.0.30</span></h1>
+                    <h1>Smartphone Banana <span class="version">v1.0.31</span></h1>
                 </div>
                 <button id="installButton" class="install-button" style="display: none;" title="アプリをインストール">
                     📥
@@ -231,6 +231,14 @@
 
                 <div class="settings">
                     <div class="setting-item">
+                        <label for="model_select">モデル:</label>
+                        <select id="model_select">
+                            <option value="nano-banana-pro" selected>nanoBanana Pro</option>
+                            <option value="nano-banana-2">nanoBanana 2</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
                         <label for="num_images">画像数:</label>
                         <select id="num_images">
                             <option value="1" selected>1</option>
@@ -243,6 +251,7 @@
                     <div class="setting-item">
                         <label for="aspect_ratio">アスペクト比:</label>
                         <select id="aspect_ratio">
+                            <option value="auto" class="model-nano-banana-2-only">auto (自動)</option>
                             <option value="1:1" selected>1:1 (正方形)</option>
                             <option value="16:9">16:9 (横長)</option>
                             <option value="9:16">9:16 (縦長)</option>
@@ -259,6 +268,7 @@
                     <div class="setting-item">
                         <label for="resolution">解像度:</label>
                         <select id="resolution">
+                            <option value="0.5K" class="model-nano-banana-2-only">0.5K</option>
                             <option value="1K" selected>1K</option>
                             <option value="2K">2K</option>
                             <option value="4K">4K</option>

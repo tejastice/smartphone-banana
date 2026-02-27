@@ -198,6 +198,7 @@ const numImagesSelect = document.getElementById('num_images');
 const aspectRatioSelect = document.getElementById('aspect_ratio');
 const resolutionSelect = document.getElementById('resolution');
 const outputFormatSelect = document.getElementById('output_format');
+const modelSelect = document.getElementById('model_select');
 const apiKeyInput = document.getElementById('api_key');
 const generateBtn = document.getElementById('generateBtn');
 const cancelBtn = document.getElementById('cancelBtn');
@@ -230,6 +231,25 @@ const officialLibraryContent = document.getElementById('officialLibraryContent')
 const officialLibraryGrid = document.getElementById('officialLibraryGrid');
 const clearPromptBtn = document.getElementById('clearPromptBtn');
 const clearImagesBtn = document.getElementById('clearImagesBtn');
+
+// Update aspect_ratio and resolution options based on selected model
+function updateModelDependentOptions(selectedModel) {
+    const isNanoBanana2 = selectedModel === 'nano-banana-2';
+    document.querySelectorAll('.model-nano-banana-2-only').forEach(option => {
+        option.style.display = isNanoBanana2 ? '' : 'none';
+        option.disabled = !isNanoBanana2;
+    });
+    if (!isNanoBanana2) {
+        if (aspectRatioSelect && aspectRatioSelect.value === 'auto') {
+            aspectRatioSelect.value = '1:1';
+            localStorage.setItem('aspect_ratio', '1:1');
+        }
+        if (resolutionSelect && resolutionSelect.value === '0.5K') {
+            resolutionSelect.value = '1K';
+            localStorage.setItem('resolution', '1K');
+        }
+    }
+}
 
 // Image upload state
 let uploadedImages = [];
@@ -353,6 +373,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (savedApiKey) {
         apiKeyInput.value = savedApiKey;
     }
+
+    // Load selected model (before other settings so options visibility is correct)
+    const savedModel = localStorage.getItem('selected_model');
+    if (savedModel && modelSelect) modelSelect.value = savedModel;
+    if (modelSelect) updateModelDependentOptions(modelSelect.value);
 
     // Load generation settings
     const savedNumImages = localStorage.getItem('num_images');
@@ -594,6 +619,13 @@ if (resolutionSelect) {
 if (outputFormatSelect) {
     outputFormatSelect.addEventListener('change', () => {
         localStorage.setItem('output_format', outputFormatSelect.value);
+    });
+}
+
+if (modelSelect) {
+    modelSelect.addEventListener('change', () => {
+        localStorage.setItem('selected_model', modelSelect.value);
+        updateModelDependentOptions(modelSelect.value);
     });
 }
 
@@ -868,7 +900,8 @@ function saveGenerationState(requestId, statusUrl, resultUrl, params, useEditMod
         // so we don't duplicate them here to avoid localStorage quota errors
         referenceImageCount: uploadedImages.length,  // Just store the count for reference
         params,
-        useEditMode
+        useEditMode,
+        modelName: modelSelect ? modelSelect.value : 'nano-banana-pro'
     };
 
     localStorage.setItem('generation_state', JSON.stringify(state));
@@ -1638,8 +1671,8 @@ if (cancelBtn) {
 }
 
 // Call FAL API
-async function callFalAPI(apiKey, params, useEditMode = false) {
-    const baseUrl = 'https://queue.fal.run/fal-ai/nano-banana-pro';
+async function callFalAPI(apiKey, params, useEditMode = false, modelName = 'nano-banana-pro') {
+    const baseUrl = `https://queue.fal.run/fal-ai/${modelName}`;
     const FAL_API_URL = useEditMode ? `${baseUrl}/edit` : baseUrl;
 
     try {
@@ -1990,7 +2023,8 @@ async function generateImages() {
         }
 
         showStatus('画像生成リクエストを送信中...', 'info');
-        const result = await callFalAPI(apiKey, params, useEditMode);
+        const selectedModel = modelSelect ? modelSelect.value : 'nano-banana-pro';
+        const result = await callFalAPI(apiKey, params, useEditMode, selectedModel);
         console.log('API Result:', result);
 
         // FAL APIのレスポンス構造に対応
