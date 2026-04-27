@@ -1,0 +1,251 @@
+[
+  {
+    "id": "nano-banana-pro",
+    "label": "Nano Banana Pro",
+    "provider": "fal",
+    "model": "fal-ai/nano-banana-pro",
+    "reference": "../reference/20251121_fal-ai_nano-banana-pro.txt",
+    "editReference": "../reference/20251121_fal-ai_nano-banana-pro_edit.txt",
+    "timeoutSec": 300,
+    "modes": {
+      "text": {
+        "endpoint": "https://queue.fal.run/fal-ai/nano-banana-pro"
+      },
+      "edit": {
+        "endpoint": "https://queue.fal.run/fal-ai/nano-banana-pro/edit"
+      }
+    },
+    "inputs": [
+      {
+        "key": "prompt",
+        "label": "Prompt",
+        "type": "text"
+      },
+      {
+        "key": "num_images",
+        "label": "Images",
+        "type": "select",
+        "options": [
+          { "label": "1", "value": 1, "default": true },
+          { "label": "2", "value": 2 },
+          { "label": "3", "value": 3 },
+          { "label": "4", "value": 4 }
+        ]
+      },
+      {
+        "key": "aspect_ratio",
+        "label": "Aspect Ratio",
+        "type": "select",
+        "options": [
+          { "label": "1:1", "value": "1:1", "default": true },
+          { "label": "16:9", "value": "16:9" },
+          { "label": "9:16", "value": "9:16" },
+          { "label": "4:3", "value": "4:3" },
+          { "label": "3:4", "value": "3:4" },
+          { "label": "21:9", "value": "21:9" },
+          { "label": "3:2", "value": "3:2" },
+          { "label": "2:3", "value": "2:3" },
+          { "label": "5:4", "value": "5:4" },
+          { "label": "4:5", "value": "4:5" }
+        ]
+      },
+      {
+        "key": "resolution",
+        "label": "Resolution",
+        "type": "select",
+        "options": [
+          { "label": "1K", "value": "1K", "default": true },
+          { "label": "2K", "value": "2K" },
+          { "label": "4K", "value": "4K" }
+        ]
+      },
+      {
+        "key": "output_format",
+        "label": "Format",
+        "type": "select",
+        "options": [
+          { "label": "PNG", "value": "png", "default": true },
+          { "label": "JPEG", "value": "jpeg" },
+          { "label": "WebP", "value": "webp" }
+        ]
+      }
+    ],
+    "defaults": {
+      "num_images": 1,
+      "aspect_ratio": "1:1",
+      "resolution": "1K",
+      "output_format": "png",
+      "sync_mode": false
+    },
+    "editDefaults": {
+      "aspect_ratio": "auto"
+    },
+    "output": "image"
+  },
+  {
+    "id": "nano-banana-2",
+    "label": "Nano Banana 2",
+    "provider": "fal",
+    "model": "fal-ai/nano-banana-2",
+    "reference": "../reference/20260227_fal-ai_nano-banana-2.txt",
+    "editReference": "../reference/20260227_fal-ai_nano-banana-2_edit.txt",
+    "timeoutSec": 300,
+    "modes": {
+      "text": {
+        "endpoint": "https://queue.fal.run/fal-ai/nano-banana-2"
+      },
+      "edit": {
+        "endpoint": "https://queue.fal.run/fal-ai/nano-banana-2/edit"
+      }
+    },
+    "inputs": [
+      {
+        "key": "prompt",
+        "label": "Prompt",
+        "type": "text"
+      },
+      {
+        "key": "num_images",
+        "label": "Images",
+        "type": "select",
+        "options": [
+          { "label": "1", "value": 1, "default": true },
+          { "label": "2", "value": 2 },
+          { "label": "3", "value": 3 },
+          { "label": "4", "value": 4 }
+        ]
+      },
+      {
+        "key": "aspect_ratio",
+        "label": "Aspect Ratio",
+        "type": "select",
+        "options": [
+          { "label": "auto", "value": "auto", "default": true },
+          { "label": "1:1", "value": "1:1" },
+          { "label": "16:9", "value": "16:9" },
+          { "label": "9:16", "value": "9:16" },
+          { "label": "4:3", "value": "4:3" },
+          { "label": "3:4", "value": "3:4" },
+          { "label": "21:9", "value": "21:9" },
+          { "label": "3:2", "value": "3:2" },
+          { "label": "2:3", "value": "2:3" },
+          { "label": "5:4", "value": "5:4" },
+          { "label": "4:5", "value": "4:5" }
+        ]
+      },
+      {
+        "key": "resolution",
+        "label": "Resolution",
+        "type": "select",
+        "options": [
+          { "label": "0.5K", "value": "0.5K" },
+          { "label": "1K", "value": "1K", "default": true },
+          { "label": "2K", "value": "2K" },
+          { "label": "4K", "value": "4K" }
+        ]
+      },
+      {
+        "key": "output_format",
+        "label": "Format",
+        "type": "select",
+        "options": [
+          { "label": "PNG", "value": "png", "default": true },
+          { "label": "JPEG", "value": "jpeg" },
+          { "label": "WebP", "value": "webp" }
+        ]
+      }
+    ],
+    "defaults": {
+      "num_images": 1,
+      "aspect_ratio": "auto",
+      "resolution": "1K",
+      "output_format": "png",
+      "safety_tolerance": "4",
+      "limit_generations": true,
+      "sync_mode": false
+    },
+    "output": "image"
+  },
+  {
+    "id": "gpt-image-2",
+    "label": "GPT Image 2",
+    "provider": "fal",
+    "model": "openai/gpt-image-2",
+    "reference": "../reference/20260422_openai_gpt-image-2.txt",
+    "editReference": "../reference/20260422_openai_gpt-image-2_edit.txt",
+    "timeoutSec": 300,
+    "modes": {
+      "text": {
+        "endpoint": "https://queue.fal.run/openai/gpt-image-2",
+        "streamEndpoint": "https://fal.run/openai/gpt-image-2/stream"
+      },
+      "edit": {
+        "endpoint": "https://queue.fal.run/openai/gpt-image-2/edit",
+        "streamEndpoint": "https://fal.run/openai/gpt-image-2/edit/stream"
+      }
+    },
+    "inputs": [
+      {
+        "key": "prompt",
+        "label": "Prompt",
+        "type": "text"
+      },
+      {
+        "key": "num_images",
+        "label": "Images",
+        "type": "select",
+        "options": [
+          { "label": "1", "value": 1, "default": true },
+          { "label": "2", "value": 2 },
+          { "label": "3", "value": 3 },
+          { "label": "4", "value": 4 }
+        ]
+      },
+      {
+        "key": "image_size",
+        "label": "Image Size",
+        "type": "select",
+        "options": [
+          { "label": "square_hd", "value": "square_hd" },
+          { "label": "square", "value": "square" },
+          { "label": "portrait_4_3", "value": "portrait_4_3" },
+          { "label": "portrait_16_9", "value": "portrait_16_9" },
+          { "label": "landscape_4_3", "value": "landscape_4_3", "default": true },
+          { "label": "landscape_16_9", "value": "landscape_16_9" },
+          { "label": "auto", "value": "auto", "editOnly": true }
+        ]
+      },
+      {
+        "key": "quality",
+        "label": "Quality",
+        "type": "select",
+        "options": [
+          { "label": "low", "value": "low" },
+          { "label": "mid", "value": "medium", "default": true },
+          { "label": "high", "value": "high" }
+        ]
+      },
+      {
+        "key": "output_format",
+        "label": "Format",
+        "type": "select",
+        "options": [
+          { "label": "PNG", "value": "png", "default": true },
+          { "label": "JPEG", "value": "jpeg" },
+          { "label": "WebP", "value": "webp" }
+        ]
+      }
+    ],
+    "defaults": {
+      "num_images": 1,
+      "image_size": "landscape_4_3",
+      "quality": "medium",
+      "output_format": "png",
+      "sync_mode": false
+    },
+    "editDefaults": {
+      "image_size": "auto"
+    },
+    "output": "image"
+  }
+]

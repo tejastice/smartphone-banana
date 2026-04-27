@@ -197,6 +197,8 @@ const promptInput = document.getElementById('prompt');
 const numImagesSelect = document.getElementById('num_images');
 const aspectRatioSelect = document.getElementById('aspect_ratio');
 const resolutionSelect = document.getElementById('resolution');
+const imageSizeSelect = document.getElementById('image_size');
+const qualitySelect = document.getElementById('quality');
 const outputFormatSelect = document.getElementById('output_format');
 const modelSelect = document.getElementById('model_select');
 const apiKeyInput = document.getElementById('api_key');
@@ -232,23 +234,159 @@ const officialLibraryGrid = document.getElementById('officialLibraryGrid');
 const clearPromptBtn = document.getElementById('clearPromptBtn');
 const clearImagesBtn = document.getElementById('clearImagesBtn');
 
-// Update aspect_ratio and resolution options based on selected model
-function updateModelDependentOptions(selectedModel) {
-    const isNanoBanana2 = selectedModel === 'nano-banana-2';
-    document.querySelectorAll('.model-nano-banana-2-only').forEach(option => {
-        option.style.display = isNanoBanana2 ? '' : 'none';
-        option.disabled = !isNanoBanana2;
-    });
-    if (!isNanoBanana2) {
-        if (aspectRatioSelect && aspectRatioSelect.value === 'auto') {
-            aspectRatioSelect.value = '1:1';
-            localStorage.setItem('aspect_ratio', '1:1');
+// Model definitions
+let modelDefinitions = [];
+let modelDefinitionsById = {};
+
+const modelInputSelects = {
+    num_images: numImagesSelect,
+    aspect_ratio: aspectRatioSelect,
+    resolution: resolutionSelect,
+    image_size: imageSizeSelect,
+    quality: qualitySelect,
+    output_format: outputFormatSelect
+};
+
+function getDefaultOptionValue(input) {
+    if (!input || !input.options || input.options.length === 0) return '';
+    const defaultOption = input.options.find(option => option.default);
+    return String((defaultOption || input.options[0]).value);
+}
+
+function getSelectedModelDefinition() {
+    const selectedModelId = modelSelect ? modelSelect.value : 'nano-banana-pro';
+    return modelDefinitionsById[selectedModelId] || modelDefinitions[0] || null;
+}
+
+async function loadModelDefinitions() {
+    try {
+        const response = await fetch('models.json', { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`models.json load failed: ${response.status}`);
         }
-        if (resolutionSelect && resolutionSelect.value === '0.5K') {
-            resolutionSelect.value = '1K';
-            localStorage.setItem('resolution', '1K');
-        }
+
+        modelDefinitions = await response.json();
+        modelDefinitionsById = Object.fromEntries(modelDefinitions.map(model => [model.id, model]));
+        populateModelSelect();
+    } catch (error) {
+        console.error('Failed to load model definitions:', error);
+        showStatus('モデル定義の読み込みに失敗しました', 'error');
     }
+}
+
+function populateModelSelect() {
+    if (!modelSelect || modelDefinitions.length === 0) return;
+
+    const savedModel = localStorage.getItem('selected_model');
+    modelSelect.innerHTML = '';
+
+    modelDefinitions.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.id;
+        option.textContent = model.label;
+        modelSelect.appendChild(option);
+    });
+
+    if (savedModel && modelDefinitionsById[savedModel]) {
+        modelSelect.value = savedModel;
+    } else {
+        modelSelect.value = modelDefinitions[0].id;
+        localStorage.setItem('selected_model', modelSelect.value);
+    }
+}
+
+function setSettingVisibility(selectElement, isVisible) {
+    if (!selectElement) return;
+    const settingItem = selectElement.closest('.setting-item');
+    if (settingItem) {
+        settingItem.style.display = isVisible ? '' : 'none';
+    }
+    selectElement.disabled = !isVisible;
+}
+
+function updateSelectFromModel(selectElement, input, mode, defaultValue, preferDefault = false) {
+    if (!selectElement || !input) return;
+
+    const currentValue = selectElement.value;
+    selectElement.innerHTML = '';
+
+    const visibleOptions = (input.options || []).filter(option => {
+        if (option.editOnly && mode !== 'edit') return false;
+        return true;
+    });
+
+    visibleOptions.forEach(optionConfig => {
+        const option = document.createElement('option');
+        option.value = String(optionConfig.value);
+        option.textContent = optionConfig.label;
+        selectElement.appendChild(option);
+    });
+
+    const optionValues = visibleOptions.map(option => String(option.value));
+    const savedValue = localStorage.getItem(input.key);
+    const fallbackValue = defaultValue !== undefined ? String(defaultValue) : getDefaultOptionValue(input);
+
+    if (preferDefault && optionValues.includes(fallbackValue)) {
+        selectElement.value = fallbackValue;
+    } else if (optionValues.includes(currentValue)) {
+        selectElement.value = currentValue;
+    } else if (savedValue && optionValues.includes(savedValue)) {
+        selectElement.value = savedValue;
+    } else if (optionValues.includes(fallbackValue)) {
+        selectElement.value = fallbackValue;
+    } else if (optionValues.length > 0) {
+        selectElement.value = optionValues[0];
+    }
+}
+
+// Update setting options and visibility based on selected model
+function updateModelDependentOptions() {
+    const model = getSelectedModelDefinition();
+    const mode = uploadedImages.length > 0 ? 'edit' : 'text';
+    const availableInputs = new Set((model?.inputs || []).map(input => input.key));
+
+    Object.entries(modelInputSelects).forEach(([key, selectElement]) => {
+        if (!selectElement) return;
+
+        const input = (model?.inputs || []).find(item => item.key === key);
+        const isVisible = availableInputs.has(key);
+        setSettingVisibility(selectElement, isVisible);
+
+        if (isVisible) {
+            const modeDefaults = mode === 'edit' ? model.editDefaults || {} : {};
+            const defaultValue = modeDefaults[key] ?? model.defaults?.[key];
+            const preferDefault = mode === 'edit' && Object.prototype.hasOwnProperty.call(modeDefaults, key);
+            updateSelectFromModel(selectElement, input, mode, defaultValue, preferDefault);
+        }
+    });
+}
+
+function buildRequestParams(model, prompt, useEditMode) {
+    if (!model) {
+        throw new Error('モデル定義が見つかりません');
+    }
+
+    const defaults = {
+        ...(model.defaults || {}),
+        ...(useEditMode ? model.editDefaults || {} : {})
+    };
+    const params = { ...defaults, prompt };
+
+    (model.inputs || []).forEach(input => {
+        if (input.key === 'prompt' || input.key === 'image_urls') return;
+
+        const selectElement = modelInputSelects[input.key];
+        if (!selectElement || selectElement.disabled) return;
+
+        let value = selectElement.value;
+        if (input.key === 'num_images') {
+            value = parseInt(value, 10);
+        }
+        params[input.key] = value;
+    });
+
+    params.sync_mode = false;
+    return params;
 }
 
 // Image upload state
@@ -369,34 +507,43 @@ function checkApiKey() {
 
 // Load saved API key, custom prompts, and library images from localStorage
 window.addEventListener('DOMContentLoaded', async () => {
+    await loadModelDefinitions();
+
     const savedApiKey = localStorage.getItem('fal_api_key');
     if (savedApiKey) {
         apiKeyInput.value = savedApiKey;
     }
 
-    // Load selected model (before other settings so options visibility is correct)
-    const savedModel = localStorage.getItem('selected_model');
-    if (savedModel && modelSelect) modelSelect.value = savedModel;
-    if (modelSelect) updateModelDependentOptions(modelSelect.value);
+    if (modelSelect) updateModelDependentOptions();
 
     // Load generation settings
     const savedNumImages = localStorage.getItem('num_images');
-    if (savedNumImages) {
+    if (savedNumImages && numImagesSelect) {
         numImagesSelect.value = savedNumImages;
     }
 
     const savedAspectRatio = localStorage.getItem('aspect_ratio');
-    if (savedAspectRatio) {
+    if (savedAspectRatio && aspectRatioSelect) {
         aspectRatioSelect.value = savedAspectRatio;
     }
 
     const savedResolution = localStorage.getItem('resolution');
-    if (savedResolution) {
+    if (savedResolution && resolutionSelect) {
         resolutionSelect.value = savedResolution;
     }
 
+    const savedImageSize = localStorage.getItem('image_size');
+    if (savedImageSize && imageSizeSelect) {
+        imageSizeSelect.value = savedImageSize;
+    }
+
+    const savedQuality = localStorage.getItem('quality');
+    if (savedQuality && qualitySelect) {
+        qualitySelect.value = savedQuality;
+    }
+
     const savedOutputFormat = localStorage.getItem('output_format');
-    if (savedOutputFormat) {
+    if (savedOutputFormat && outputFormatSelect) {
         outputFormatSelect.value = savedOutputFormat;
     }
 
@@ -430,6 +577,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             uploadedImages = [];
         }
     }
+
+    if (modelSelect) updateModelDependentOptions();
 
     // Load saved output images
     const savedOutputImages = localStorage.getItem('output_images');
@@ -616,6 +765,18 @@ if (resolutionSelect) {
     });
 }
 
+if (imageSizeSelect) {
+    imageSizeSelect.addEventListener('change', () => {
+        localStorage.setItem('image_size', imageSizeSelect.value);
+    });
+}
+
+if (qualitySelect) {
+    qualitySelect.addEventListener('change', () => {
+        localStorage.setItem('quality', qualitySelect.value);
+    });
+}
+
 if (outputFormatSelect) {
     outputFormatSelect.addEventListener('change', () => {
         localStorage.setItem('output_format', outputFormatSelect.value);
@@ -625,7 +786,7 @@ if (outputFormatSelect) {
 if (modelSelect) {
     modelSelect.addEventListener('change', () => {
         localStorage.setItem('selected_model', modelSelect.value);
-        updateModelDependentOptions(modelSelect.value);
+        updateModelDependentOptions();
     });
 }
 
@@ -1531,6 +1692,8 @@ function updateImagePreview() {
 
     // Reset file input
     imageFileInput.value = '';
+
+    if (modelSelect) updateModelDependentOptions();
 }
 
 // Remove image
@@ -1671,9 +1834,20 @@ if (cancelBtn) {
 }
 
 // Call FAL API
-async function callFalAPI(apiKey, params, useEditMode = false, modelName = 'nano-banana-pro') {
-    const baseUrl = `https://queue.fal.run/fal-ai/${modelName}`;
-    const FAL_API_URL = useEditMode ? `${baseUrl}/edit` : baseUrl;
+async function callFalAPI(apiKey, params, useEditMode = false, model = getSelectedModelDefinition()) {
+    if (!model) {
+        throw new Error('モデル定義が見つかりません');
+    }
+
+    const modeKey = useEditMode ? 'edit' : 'text';
+    const modeConfig = model.modes?.[modeKey];
+    const FAL_API_URL = modeConfig?.endpoint;
+
+    if (!FAL_API_URL) {
+        throw new Error(`${model.label} は ${useEditMode ? '画像編集' : '画像生成'} に対応していません`);
+    }
+
+    const queueBaseUrl = FAL_API_URL.replace(/\/edit$/, '');
 
     try {
         // Submit request
@@ -1696,15 +1870,16 @@ async function callFalAPI(apiKey, params, useEditMode = false, modelName = 'nano
 
         const submitData = await submitResponse.json();
         const requestId = submitData.request_id;
-        const statusUrl = submitData.status_url || `${baseUrl}/requests/${requestId}/status`;
-        const resultUrl = submitData.response_url || `${baseUrl}/requests/${requestId}`;
+        const statusUrl = submitData.status_url || `${queueBaseUrl}/requests/${requestId}/status`;
+        const resultUrl = submitData.response_url || `${queueBaseUrl}/requests/${requestId}`;
 
         console.log('API Request submitted:', {
             endpoint: FAL_API_URL,
             requestId: requestId,
             statusUrl: statusUrl,
             resultUrl: resultUrl,
-            useEditMode: useEditMode
+            useEditMode: useEditMode,
+            model: model.id
         });
 
         // Save generation state for recovery
@@ -1969,15 +2144,10 @@ async function generateImages() {
 
     // Check if using edit mode (with reference images)
     const useEditMode = uploadedImages.length > 0;
+    const selectedModel = getSelectedModelDefinition();
 
     // Prepare request parameters
-    const params = {
-        prompt: prompt,
-        num_images: numImagesSelect ? parseInt(numImagesSelect.value) : 1,
-        aspect_ratio: aspectRatioSelect ? aspectRatioSelect.value : '1:1',
-        resolution: resolutionSelect ? resolutionSelect.value : '1K',
-        output_format: outputFormatSelect ? outputFormatSelect.value : 'jpeg',
-    };
+    const params = buildRequestParams(selectedModel, prompt, useEditMode);
 
     setLoading(true);
     clearStatus();
@@ -2023,7 +2193,6 @@ async function generateImages() {
         }
 
         showStatus('画像生成リクエストを送信中...', 'info');
-        const selectedModel = modelSelect ? modelSelect.value : 'nano-banana-pro';
         const result = await callFalAPI(apiKey, params, useEditMode, selectedModel);
         console.log('API Result:', result);
 

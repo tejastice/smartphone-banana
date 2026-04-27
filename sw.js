@@ -1,9 +1,10 @@
-const CACHE_NAME = 'smartphone-banana-v1.0.31';
+const CACHE_NAME = 'smartphone-banana-v1.1.0';
 const urlsToCache = [
     './',
     './index.html',
     './style.css',
     './app.js',
+    './models.json',
     './manifest.json',
     './icons/icon-192.png',
     './icons/icon-512.png',
